@@ -1,0 +1,16 @@
+venv/
+
+*.pyc
+__pycache__/
+
+instance/
+
+application/game/static/fonts/
+application/game/static/images/
+application/game/static/js/myo.js
+application/game/static/js/pixi.js
+application/game/static/js/pixi.min.js
+application/game/static/js/pixi.min.js.map
+application/static/icons/
+
+.vscode/
