@@ -11,13 +11,16 @@ let state = loadingState;
 let [prevTs, tsDiff] = [0];
 requestAnimationFrame(gameLoop);
 
+let idb, idbSesId;
+initializeIdb();
+
 let overworldCtr, pauseCtr, levelCtr, endingCtr, rhombiCtr;
-let pauseHeading, pauseBody, heatsInfoUpper, heatsInfoLower;
+let pauseHeading, pauseBody, endingInfo, wavesInfoUpper, wavesInfoLower;
 let myoSprite, myoBar, myoBarBgd, healthBar, healthBarBgd, charge;
 let playerChar, warpAnimation, shield, gem, bonusBar, bonusBarBgd;
-let donutMask, heatsInfoRects, nextHeatRhombi;
-let mainSheet, lvlSheet, music, enemyHeats;
-let timeoutID, keyPressed, playing, startTs, tZero, totalHeats, restTimeoutID;
+let donutMask, wavesInfoRects, nextWaveRhombi;
+let mainSheet, lvlSheet, music, enemyWaves;
+let timeoutID, keyPressed, playing, startTs, tZero, totalWaves, restTimeoutID;
 let [repCounter, bonusTimer] = [0, 0];
 let [attacks, enemies, bursts, freePositions, target] = [{}, {}, {}, [], {}];
 let tempGraphics;
@@ -43,42 +46,27 @@ const colors = {
 };
 const bypassMyo = true;
 
-const data = {
-  curtWld: 1,
-  curtLvl: 1,
-  // totWorlds: 4,
-  totLevels: [4, 5, 5, 5],
-  setsToDo: {
-    fingers_spread: 2,
-    fist: 1,
-    double_tap: 3,
-    wave_in: 4,
-    wave_out: 1,
-  },
-  repsToDo: {
-    fingers_spread: 3,
-    fist: 3,
-    double_tap: 3,
-    wave_in: 3,
-    wave_out: 3,
-  },
-  durations: {
-    fingers_spread: 1500,
-    fist: 1500,
-    double_tap: 1000,
-    wave_in: 1000,
-    wave_out: 1500,
-  },
-  restBtwReps: 1500,
-  restBtwSets: 0,
-};
+let data;
 
 // const totSetsToDo = [...Object.values(data.setsToDo)].reduce((a, b) => a + b);
 
-Sound.load([
-  "static/sounds/overworld.mp3",
-  `static/sounds/lvl_${data.curtLvl}.mp3`,
-]);
+let username = "chou";
+function fetchUserData() {
+  fetch(`http://127.0.0.1:5000/api/programs/${username}`)
+    .then((response) => response.json())
+    .then((resJson) => {
+      data = resJson;
+      Sound.load([
+        "static/sounds/overworld.mp3",
+        `static/sounds/lvl_${data.curtLvl}.mp3`,
+      ]);
+    })
+    .catch((error) => {
+      alert("Failed to load user data. Please try again later.");
+      console.error("Error:", error);
+    });
+}
+
 Sound.whenLoaded = () => {
   PIXI.Loader.shared.baseUrl = "static/images/";
   PIXI.Loader.shared.add([
@@ -89,6 +77,113 @@ Sound.whenLoaded = () => {
   PIXI.Loader.shared.load(gameSetup);
 };
 
+function initializeIdb() {
+  if (!indexedDB) {
+    alert("Your browser doesn't support a stable version of IndexedDB.");
+    return;
+  }
+
+  const request = indexedDB.open("MyTestDatabase");
+  request.onerror = (event) => {
+    alert("IndexedDB: 'onerror' event triggered.", event.target.error);
+  };
+  request.onsuccess = (event) => {
+    idb = event.target.result;
+    fetchUserData();
+  };
+  request.onupgradeneeded = (event) => {
+    const idb = event.target.result;
+    const objStore = idb.createObjectStore("sessions", { autoIncrement: true });
+    // objStore.createIndex("pt_id", "pt_id");
+    // objStore.transaction.oncomplete = (event) => {};
+  };
+}
+
+function createIdbSession(pt_id, prog_id) {
+  const sessionObjStore = idb
+    .transaction("sessions", "readwrite")
+    .objectStore("sessions");
+  const sessionData = {
+    pt_id: pt_id,
+    prog_id: prog_id,
+    start_ts: Date.now() / 1000,
+    success: false,
+    wvi_sets: 0,
+    wvo_sets: 0,
+    fst_sets: 0,
+    dtp_sets: 0,
+    fsd_sets: 0,
+    synced: false,
+  };
+  const request = sessionObjStore.add(sessionData);
+  request.onsuccess = (event) => {
+    idbSesId = event.target.result;
+    window.addEventListener("beforeunload", confirmUnload);
+  };
+}
+
+function updateIdbSession(ses_id, keyToUpdate) {
+  const sessionObjStore = idb
+    .transaction("sessions", "readwrite")
+    .objectStore("sessions");
+  const request = sessionObjStore.get(ses_id);
+
+  request.onsuccess = (event) => {
+    const data = event.target.result;
+    switch (keyToUpdate) {
+      case "wave_in":
+        data.wvi_sets++;
+        break;
+      case "wave_out":
+        data.wvo_sets++;
+        break;
+      case "double_tap":
+        data.dtp_sets++;
+        break;
+      case "fingers_spread":
+        data.fsd_sets++;
+        break;
+      case "fist":
+        data.fst_sets++;
+        break;
+      case "success":
+        data.success = true;
+        fetch(`http://127.0.0.1:5000/api/sessions/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        })
+          .then((response) => {
+            if (response.ok) {
+              updateIdbSession(ses_id, "synced");
+              return;
+            }
+            throw new Error("Something went wrong while uploading user data.");
+          })
+          .catch((error) => {
+            endingInfo.text = `LEVEL COMPLETED!
+
+FAILED TO UPLOAD DATA.`;
+            console.error("Error:", error);
+          });
+      case "synced":
+        data.synced = true;
+        endingInfo.text = `LEVEL COMPLETED!
+
+DATA UPLOADED SUCCESSFULLY!
+YOU MAY NOW CLOSE THE WINDOW.`;
+      default:
+        break;
+    }
+    if (keyToUpdate !== "synced") data.end_ts = Date.now() / 1000;
+
+    const requestUpdate = sessionObjStore.put(data, ses_id);
+    // requestUpdate.onsuccess = (event) => {};
+  };
+}
+
 function gameSetup(_, resources) {
   mainSheet = resources["main.json"].spritesheet;
   lvlSheet = resources[`lvl_${data.curtLvl}.json`].spritesheet;
@@ -97,8 +192,8 @@ function gameSetup(_, resources) {
   music.loop = true;
   music.volume = 0.25;
 
-  partitionSetsInHeats();
-  console.log(enemyHeats);
+  partitionSetsInWaves();
+  // console.log(enemyWaves);
   calculateBonusDuration();
 
   createPlayerChar();
@@ -111,13 +206,19 @@ function gameSetup(_, resources) {
   endingCtr = new PIXI.Container();
   endingCtr.visible = false;
   app.stage.addChild(endingCtr);
-  const endingText = new PIXI.Text("OK", {
-    fill: 0xffffff,
-    fontWeight: "bold",
-  });
-  endingText.x = canvas.width / 2 - endingText.width / 2;
-  endingText.y = canvas.height / 2 - endingText.height / 2;
-  endingCtr.addChild(endingText);
+  endingInfo = new PIXI.Text(
+    `LEVEL COMPLETED!
+  
+  PLEASE WAIT WHILE DATA IS BEING UPLOADED...`,
+    {
+      fill: 0xffffff,
+      fontWeight: "bold",
+      align: "center",
+    }
+  );
+  endingInfo.anchor.set(0.5, 0.5);
+  endingInfo.position.set(canvas.width / 2, canvas.height / 2);
+  endingCtr.addChild(endingInfo);
 
   keyboardListenersSetup();
   myoListenersSetup();
@@ -141,7 +242,7 @@ function createLoadingScreen() {
   loadingCtr.addChild(loadingTextObj);
 }
 
-function partitionSetsInHeats() {
+function partitionSetsInWaves() {
   let auxArray = new Array();
   exercises.forEach((ex) => {
     for (let idx = 0; idx < data.setsToDo[ex]; idx++)
@@ -150,18 +251,18 @@ function partitionSetsInHeats() {
   auxArray = rearrangeArray(auxArray, auxArray.length);
 
   let idx = 0;
-  enemyHeats = [new Set()];
+  enemyWaves = [new Set()];
   auxArray.forEach((auxNum) => {
-    if (!enemyHeats[idx].has(exercises[auxNum - 1])) {
-      enemyHeats[idx].add(exercises[auxNum - 1]);
+    if (!enemyWaves[idx].has(exercises[auxNum - 1])) {
+      enemyWaves[idx].add(exercises[auxNum - 1]);
     } else {
-      enemyHeats.push(new Set());
+      enemyWaves.push(new Set());
       idx++;
-      enemyHeats[idx].add(exercises[auxNum - 1]);
+      enemyWaves[idx].add(exercises[auxNum - 1]);
     }
   });
 
-  totalHeats = enemyHeats.length;
+  totalWaves = enemyWaves.length;
 }
 
 function rearrangeArray(e, t) {
@@ -239,10 +340,14 @@ function createOverworldPlatforms() {
   const platformsCtr = new PIXI.Container();
 
   for (let idx = 0; idx < data.totLevels[data.curtWld - 1]; idx++) {
+    data.curtWldLvl = data.curtLvl;
+    for (let i = 0; i < data.curtWld - 1; i++) {
+      data.curtWldLvl -= data.totLevels[i];
+    }
     let tempSprite;
-    if (idx < data.curtLvl - 1) {
+    if (idx < data.curtWldLvl - 1) {
       tempSprite = new PIXI.Sprite(mainSheet.textures["green_platform.png"]);
-    } else if (idx === data.curtLvl - 1) {
+    } else if (idx === data.curtWldLvl - 1) {
       tempSprite = new PIXI.Sprite(mainSheet.textures["blue_platform.png"]);
     } else {
       tempSprite = new PIXI.Sprite(mainSheet.textures["yellow_platform.png"]);
@@ -260,7 +365,7 @@ function createOverworldPlatforms() {
   lineObj.moveTo(platformsCtr.x + 35, platformsCtr.y + 12);
   lineObj.lineTo(platformsCtr.x + platformsCtr.width - 35, platformsCtr.y + 12);
 
-  playerChar.x = platformsCtr.x + 140 * (data.curtLvl - 1) + 37;
+  playerChar.x = platformsCtr.x + 140 * (data.curtWldLvl - 1) + 37;
   playerChar.y = canvas.height / 2 - playerChar.height / 2;
   warpAnimation.x = playerChar.x;
   warpAnimation.y = playerChar.y;
@@ -282,7 +387,7 @@ function createOverworldInfo() {
   headingText.x = canvas.width / 2 - headingText.width / 2;
   headingText.y = 65 - headingText.height / 2;
 
-  const footerText = new PIXI.Text(`LEVEL ${data.curtWld}-${data.curtLvl}`, {
+  const footerText = new PIXI.Text(`LEVEL ${data.curtWld}-${data.curtWldLvl}`, {
     fill: 0x451c0c,
     fontWeight: "bold",
   });
@@ -324,7 +429,7 @@ function levelSetup() {
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   ];
-  findFreePositions(grid, enemyHeats[0].size + 2);
+  findFreePositions(grid, enemyWaves[0].size + 2);
   appendGem();
   appendEnemies();
 
@@ -337,7 +442,7 @@ function levelSetup() {
   levelCtr.addChild(myoSprite);
 
   appendBars();
-  appendHeatsInfo();
+  appendWavesInfo();
 }
 
 function findFreePositions(grid, numOfPositions) {
@@ -384,7 +489,7 @@ function appendGem() {
   shield.play();
 
   placeLevelElements([shield, gem], 3);
-  drawShieldMask(totalHeats);
+  drawShieldMask(totalWaves);
 }
 
 function placeLevelElements(spritesArray, indexToPlaceChild) {
@@ -397,13 +502,13 @@ function placeLevelElements(spritesArray, indexToPlaceChild) {
   freePositions.splice(0, 1);
 }
 
-function drawShieldMask(heatsLeft) {
+function drawShieldMask(wavesLeft) {
   if (donutMask) donutMask.clear();
   donutMask = new PIXI.Graphics();
   donutMask.beginFill(0xff0000);
   donutMask.drawCircle(0, 0, 36);
   donutMask.beginHole();
-  donutMask.drawCircle(0, 0, 36 - (18 * heatsLeft) / totalHeats);
+  donutMask.drawCircle(0, 0, 36 - (18 * wavesLeft) / totalWaves);
   donutMask.endHole();
   donutMask.endFill();
   donutMask.x = shield.x;
@@ -430,7 +535,7 @@ function appendEnemies() {
     bursts[ex].animationSpeed = 0.3;
     bursts[ex].loop = false;
 
-    if (!enemyHeats[0].has(ex)) return;
+    if (!enemyWaves[0].has(ex)) return;
 
     placeLevelElements([attacks[ex], enemies[ex]], 3);
     correctAttacksPos(ex);
@@ -515,70 +620,70 @@ function appendBars() {
   levelCtr.addChild(bonusBarBgd, bonusBarTxt, bonusBar);
 }
 
-function appendHeatsInfo() {
-  heatsInfoRects = new PIXI.Graphics();
-  heatsInfoRects.beginFill(0, 0.75);
-  heatsInfoRects.lineStyle({ width: 2, color: 0x677078 });
-  heatsInfoRects.drawRoundedRect(0, 0, 158, 28, 5);
-  heatsInfoRects.endFill();
-  heatsInfoRects.beginFill(0, 0.75);
-  heatsInfoRects.lineStyle({ width: 2, color: 0x677078 });
-  heatsInfoRects.drawRoundedRect(0, 40, 158, 58, 5);
-  heatsInfoRects.endFill();
-  heatsInfoRects.position.set(1024 - heatsInfoRects.width - 9, 11);
+function appendWavesInfo() {
+  wavesInfoRects = new PIXI.Graphics();
+  wavesInfoRects.beginFill(0, 0.75);
+  wavesInfoRects.lineStyle({ width: 2, color: 0x677078 });
+  wavesInfoRects.drawRoundedRect(0, 0, 158, 28, 5);
+  wavesInfoRects.endFill();
+  wavesInfoRects.beginFill(0, 0.75);
+  wavesInfoRects.lineStyle({ width: 2, color: 0x677078 });
+  wavesInfoRects.drawRoundedRect(0, 40, 158, 58, 5);
+  wavesInfoRects.endFill();
+  wavesInfoRects.position.set(1024 - wavesInfoRects.width - 9, 11);
 
   let style = { fontSize: 16, fontWeight: 700, fill: "white", align: "center" };
 
-  heatsInfoUpper = new PIXI.Text("", style);
-  heatsInfoUpper.anchor.set(0.5, 0.5);
-  heatsInfoUpper.x = heatsInfoRects.x + 0.5 * (heatsInfoRects.width - 2);
-  heatsInfoUpper.y = heatsInfoRects.y + 14;
+  wavesInfoUpper = new PIXI.Text("", style);
+  wavesInfoUpper.anchor.set(0.5, 0.5);
+  wavesInfoUpper.x = wavesInfoRects.x + 0.5 * (wavesInfoRects.width - 2);
+  wavesInfoUpper.y = wavesInfoRects.y + 14;
 
-  heatsInfoLower = new PIXI.Text(`NEXT HEAT`, style);
-  heatsInfoLower.anchor.set(0.5, 0.5);
-  heatsInfoLower.x = heatsInfoRects.x + 0.5 * (heatsInfoRects.width - 2);
-  heatsInfoLower.y = heatsInfoRects.y + heatsInfoRects.height - 2 - 8 - 6;
+  wavesInfoLower = new PIXI.Text(`NEXT WAVE`, style);
+  wavesInfoLower.anchor.set(0.5, 0.5);
+  wavesInfoLower.x = wavesInfoRects.x + 0.5 * (wavesInfoRects.width - 2);
+  wavesInfoLower.y = wavesInfoRects.y + wavesInfoRects.height - 2 - 8 - 6;
 
-  nextHeatRhombi = new PIXI.Graphics();
+  nextWaveRhombi = new PIXI.Graphics();
   rhombiCtr = new PIXI.Container();
-  rhombiCtr.addChild(nextHeatRhombi);
+  rhombiCtr.addChild(nextWaveRhombi);
 
-  levelCtr.addChild(heatsInfoRects, heatsInfoUpper, heatsInfoLower, rhombiCtr);
+  levelCtr.addChild(wavesInfoRects, wavesInfoUpper, wavesInfoLower, rhombiCtr);
 
-  displayNextHeat();
+  displayNextWave();
 }
 
-function displayNextHeat() {
-  nextHeatRhombi.clear();
-  if (enemyHeats[0]) {
-    heatsInfoUpper.text = `HEAT ${
-      totalHeats - enemyHeats.length + 1
-    } OF ${totalHeats}`;
-    heatsInfoUpper.x = heatsInfoRects.x + 0.5 * (heatsInfoRects.width - 2);
-    heatsInfoUpper.y = heatsInfoRects.y + 14;
-    if (enemyHeats[1]) {
+function displayNextWave() {
+  nextWaveRhombi.clear();
+  if (enemyWaves[0]) {
+    wavesInfoUpper.text = `WAVE ${
+      totalWaves - enemyWaves.length + 1
+    } OF ${totalWaves}`;
+    wavesInfoUpper.x = wavesInfoRects.x + 0.5 * (wavesInfoRects.width - 2);
+    wavesInfoUpper.y = wavesInfoRects.y + 14;
+    if (enemyWaves[1]) {
       let idx = 0;
-      for (const ex of enemyHeats[1]) {
-        nextHeatRhombi.beginFill(colors[ex]);
-        nextHeatRhombi.moveTo(10 + idx * 30, 0);
-        nextHeatRhombi.lineTo(20 + idx * 30, 10);
-        nextHeatRhombi.lineTo(10 + idx * 30, 20);
-        nextHeatRhombi.lineTo(idx * 30, 10);
-        nextHeatRhombi.lineTo(10 + idx * 30, 0);
-        nextHeatRhombi.endFill();
+      for (const ex of enemyWaves[1]) {
+        nextWaveRhombi.beginFill(colors[ex]);
+        nextWaveRhombi.moveTo(10 + idx * 30, 0);
+        nextWaveRhombi.lineTo(20 + idx * 30, 10);
+        nextWaveRhombi.lineTo(10 + idx * 30, 20);
+        nextWaveRhombi.lineTo(idx * 30, 10);
+        nextWaveRhombi.lineTo(10 + idx * 30, 0);
+        nextWaveRhombi.endFill();
         idx++;
       }
-      rhombiCtr.x = heatsInfoUpper.x - rhombiCtr.width / 2;
-      rhombiCtr.y = heatsInfoUpper.y + 34;
+      rhombiCtr.x = wavesInfoUpper.x - rhombiCtr.width / 2;
+      rhombiCtr.y = wavesInfoUpper.y + 34;
     } else {
-      heatsInfoLower.text = "FINAL HEAT";
-      heatsInfoLower.x = heatsInfoRects.x + 0.5 * (heatsInfoRects.width - 2);
-      heatsInfoLower.y = heatsInfoRects.y + 69;
+      wavesInfoLower.text = "FINAL WAVE";
+      wavesInfoLower.x = wavesInfoRects.x + 0.5 * (wavesInfoRects.width - 2);
+      wavesInfoLower.y = wavesInfoRects.y + 69;
     }
   } else {
-    heatsInfoLower.text = `LEVEL\nCOMPLETED`;
-    heatsInfoLower.x = heatsInfoRects.x + 0.5 * (heatsInfoRects.width - 2);
-    heatsInfoLower.y = heatsInfoRects.y + 69;
+    wavesInfoLower.text = `LEVEL\nCOMPLETED`;
+    wavesInfoLower.x = wavesInfoRects.x + 0.5 * (wavesInfoRects.width - 2);
+    wavesInfoLower.y = wavesInfoRects.y + 69;
   }
 }
 
@@ -707,8 +812,8 @@ function playState() {
 
   boundPlayerToScreen();
   handleSpritesCollision(shield);
-  if (!enemyHeats[0]) return;
-  for (const ex of enemyHeats[0]) handleSpritesCollision(enemies[ex]);
+  if (!enemyWaves[0]) return;
+  for (const ex of enemyWaves[0]) handleSpritesCollision(enemies[ex]);
 
   let en = findNearEnemy();
   if (en) {
@@ -758,7 +863,7 @@ function playState() {
     healthBar.visible = false;
     myoBarBgd.visible = false;
     myoBar.visible = false;
-    for (const ex of enemyHeats[0]) {
+    for (const ex of enemyWaves[0]) {
       if (enemies[ex].defeated) {
         enemies[ex].alpha = 1 - 0.001 * (prevTs - startTs);
       }
@@ -829,7 +934,7 @@ function orientEnemyToPlayer(ex) {
 }
 
 function findNearEnemy() {
-  for (const ex of enemyHeats[0]) {
+  for (const ex of enemyWaves[0]) {
     let xDist = Math.abs(enemies[ex].x - target.x);
     let yDist = Math.abs(enemies[ex].y - target.y);
     let hwEnemy = enemies[ex].width / 2;
@@ -851,7 +956,9 @@ function handleSpritesCollision(sprite) {
   let hwCombined = sprite.width / 2 + playerChar.width / 2;
   let hhCombined = sprite.height / 2 + playerChar.height / 2;
   if (xDist < hwCombined && yDist < hhCombined) {
-    if (!enemyHeats[0]) {
+    if (!enemyWaves[0]) {
+      updateIdbSession(idbSesId, "success");
+      window.removeEventListener("beforeunload", confirmUnload);
       state = endingState;
       return;
     }
@@ -919,6 +1026,7 @@ function keyDownListener(event) {
 
   if (keyPressed === "Enter") {
     if (state === overworldState) {
+      createIdbSession(data.pt_id, data.prog_id);
       transitionToLevel();
     } else if (state === playState) {
       state = mainPauseState;
@@ -1057,7 +1165,7 @@ function myoPoseOnListener(ex) {
     ex !== target.exercise ||
     myoBar.restMode ||
     enemies[ex].defeated ||
-    !enemyHeats[0]
+    !enemyWaves[0]
   )
     return;
 
@@ -1134,7 +1242,7 @@ function updateFreePositions() {
     }
   }
 
-  findFreePositions(grid, enemyHeats[0].size);
+  findFreePositions(grid, enemyWaves[0].size);
 }
 
 function myoPoseOffListener(ex) {
@@ -1172,19 +1280,20 @@ function myoPoseOffListener(ex) {
         healthBar.init = true;
         setTimeout(() => {
           enemies[ex].defeated = false;
-          enemyHeats[0].delete(ex);
+          enemyWaves[0].delete(ex);
           enemies[ex].visible = false;
           enemies[ex].alpha = 1;
           enemies[ex].rotation = 0;
           repCounter = 0;
-          if (enemyHeats[0].size === 0) {
-            enemyHeats.splice(0, 1);
-            displayNextHeat();
-            if (enemyHeats[0]) {
+          updateIdbSession(idbSesId, ex);
+          if (enemyWaves[0].size === 0) {
+            enemyWaves.splice(0, 1);
+            displayNextWave();
+            if (enemyWaves[0]) {
               // levelCtr.removeChild(tempGraphics);
               updateFreePositions();
-              drawShieldMask(enemyHeats.length);
-              for (const ex of enemyHeats[0]) {
+              drawShieldMask(enemyWaves.length);
+              for (const ex of enemyWaves[0]) {
                 placeLevelElements([bursts[ex], attacks[ex], enemies[ex]], 3);
                 correctAttacksPos(ex);
                 enemies[ex].visible = false;
@@ -1216,4 +1325,10 @@ function myoPoseOffListener(ex) {
     myoBar.clear();
   }
   clearTimeout(timeoutID);
+}
+
+function confirmUnload(e) {
+  const confirmationMessage = "o/";
+  (e || window.event).returnValue = confirmationMessage;
+  return confirmationMessage;
 }
