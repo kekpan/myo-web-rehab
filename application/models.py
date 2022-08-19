@@ -1,28 +1,37 @@
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
 
-class Patient(db.Model):
+class Patient(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(64), nullable=False)
     days_done = db.Column(db.Integer)
     prog_group = db.Column(db.Integer)
     pro_id = db.Column(db.Integer, db.ForeignKey(
         'professional.id'), nullable=False)
     sessions = db.relationship('Session', backref='patient')
 
+    def get_id(self):
+        return self.username
+
     def __repr__(self):
         return '<Patient %r>' % self.username
 
 
-class Professional(db.Model):
+class Professional(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(64), nullable=False)
     patients = db.relationship('Patient', backref='professional')
     programs = db.relationship('Program', backref='professional')
+
+    def get_id(self):
+        return self.username
 
     def __repr__(self):
         return '<Professional %r>' % self.username

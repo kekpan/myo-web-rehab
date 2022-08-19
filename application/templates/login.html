@@ -1,0 +1,61 @@
+{% extends "base.html" %} {% block title %}Login{% endblock %} {% block
+navbar_links %}
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.index') }}"
+    role="button"
+    >Homepage</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.myo') }}"
+    role="button"
+    >Myo Connect</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.register') }}"
+    role="button"
+    >Create account</a
+  >
+</li>
+{% endblock %} {% block navbar_span %}
+<a
+  class="btn btn-secondary ms-2"
+  href="{{ url_for('home.login') }}"
+  role="button"
+  >Log in</a
+>{% endblock %}{% block content %}
+
+<div class="container d-flex justify-content-center my-4">
+  <h1 class="text-uppercase">Login</h1>
+</div>
+
+<div
+  class="container d-block text-center my-4 p-4 rounded border border-3 bg-light"
+  style="max-width: 330px"
+>
+  <form method="post">
+    {{ form.hidden_tag() }}
+    <div class="mb-3">
+      {{ form.username.label }} {{ form.username(class="form-control") }}
+    </div>
+    <div class="mb-3">
+      {{ form.password.label }} {{ form.password(class="form-control") }}
+    </div>
+    <div class="my-4 mx-auto">
+      <input type="submit" class="btn btn-primary" value="Submit" />
+    </div>
+    <div class="mb-3">
+      No account?
+      <a href="{{ url_for('home.register') }}">Create one!</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

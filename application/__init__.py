@@ -8,6 +8,8 @@ def build_app():
 
     from application.models import db
     db.init_app(app)
+    from application.auth import login_manager
+    login_manager.init_app(app)
 
     from application.views import home_bp
     app.register_blueprint(home_bp)

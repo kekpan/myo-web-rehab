@@ -1,139 +1,120 @@
-{% extends "base.html" %} {% block content %}
-
-<header class="container mt-3">
-  <img
-    src="{{ url_for('static', filename='images/logo.png') }}"
-    class="img-fluid mx-auto"
-    alt="Bleic: The Countdown"
-    style="display: block"
-  />
-  <!-- <p class="mt-2 text-center text-muted"><strong>An action-adventure game for web browsers.</strong></p> -->
-</header>
-
-<!-- <div class="container mt-3">
-  <p class="lead text-center">What do you need to play the game?</p>
-  <div class="card-group">
-    <div class="card">
-      <img
-        src="{{ url_for('static', filename='images/myo_armband.png') }}"
-        class="card-img-top h-100 w-100"
-        alt="..."
-      />
-      <div class="card-body">
-        <h5 class="card-title">Myo Armband</h5>
-        <p class="card-text">
-          This is a wider card with supporting text below as a natural lead-in
-          to additional content. This content is a little bit longer.
-        </p>
-        <p class="card-text">
-          <small class="text-muted">Last updated 3 mins ago</small>
-        </p>
-      </div>
-    </div>
-    <div class="card">
-      <img
-        src="{{ url_for('static', filename='images/logo.png') }}"
-        class="card-img-top"
-        alt="..."
-      />
-      <div class="card-body">
-        <h5 class="card-title">Myo Connect</h5>
-        <p class="card-text">
-          This card has supporting text below as a natural lead-in to additional
-          content.
-        </p>
-        <p class="card-text">
-          <small class="text-muted">Last updated 3 mins ago</small>
-        </p>
-      </div>
-    </div>
-    <div class="card">
-      <img
-        src="{{ url_for('static', filename='images/logo.png') }}"
-        class="card-img-top"
-        alt="..."
-      />
-      <div class="card-body">
-        <h5 class="card-title">User Account</h5>
-        <p class="card-text">
-          This is a wider card with supporting text below as a natural lead-in
-          to additional content. This card has even longer content than the
-          first to show that equal height action.
-        </p>
-        <p class="card-text">
-          <small class="text-muted">Last updated 3 mins ago</small>
-        </p>
-      </div>
-    </div>
-  </div>
-</div> -->
-
-<div class="container mt-3">
-  <p class="lead text-center">What do you need to play the game?</p>
-  <div class="row row-cols-1 row-cols-md-3 g-4 text-dark">
+{% extends "base.html" %} {% block title %}Homepage{% endblock %} {% block
+navbar_links %}
+<li class="nav-item">
+  <a
+    class="btn btn-secondary me-2"
+    href="{{ url_for('home.index') }}"
+    role="button"
+    >Homepage</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.myo') }}"
+    role="button"
+    >Myo Connect</a
+  >
+</li>
+<li class="nav-item">
+  {% if current_user.is_authenticated %} {% if current_user.pro_id %}
+  <a
+    class="btn btn-warning me-2"
+    href="{{ url_for('game.index') }}"
+    role="button"
+    >Go to Game</a
+  >
+  {% else %}
+  <a class="btn btn-warning me-2" href="#" role="button">Go to Dashboard</a>
+  {% endif %} {% else %}<a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.register') }}"
+    role="button"
+    >Create account</a
+  >
+  {% endif %}
+</li>
+{% endblock %} {% block navbar_span %} {% if current_user.is_authenticated %}
+<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
+  >Log out</a
+>{% else %}<a
+  class="btn btn-primary ms-2"
+  href="{{ url_for('home.login') }}"
+  role="button"
+  >Log in</a
+>{% endif %}{% endblock %} {% block content %}
+<div
+  class="container mt-4 d-block bg-light border rounded-3 border-3"
+  style="max-width: 720px"
+>
+  <h3 class="my-3 text-center">
+    You need 2 things to play
+    <i style="color: #6f42c1">Bleic: The Countdown</i>
+  </h3>
+  <div class="row row-cols-1 row-cols-md-2 g-2 mb-4 mx-2">
     <div class="col">
-      <div class="card h-100">
+      <div class="card text-center">
         <img
           src="{{ url_for('static', filename='images/armband.png') }}"
           class="card-img-top mx-auto mt-3"
-          style="max-height: 100px; max-width: 100px"
+          alt="..."
+          style="max-width: 100px"
         />
         <div class="card-body">
-          <h5 class="card-title text-center">Myo Armband</h5>
-          <p class="card-text text-center">
-            The Myo armband reads the muscle activity in your forearm and gives
-            you control of technology with hand gestures and motion. This game
-            requires the gesture recognition provided by Myo armband.
+          <h5 class="card-title">Myo + Myo Connect</h5>
+          <p class="card-text">
+            <em>Myo Connect</em> is the application that allows your
+            <em>Myo armband</em> to communicate with your computer.
           </p>
-        </div>
-        <div class="card-footer d-flex justify-content-center">
-          <a class="btn btn-primary">More Info About Myo</a>
+          <div>
+            <a
+              class="btn btn-outline-primary"
+              href="{{ url_for('home.myo') }}"
+              role="button"
+              >Download Myo Connect</a
+            >
+          </div>
         </div>
       </div>
     </div>
     <div class="col">
-      <div class="card h-100">
-        <img
-          src="{{ url_for('static', filename='images/connect.png') }}"
-          class="card-img-top mx-auto mt-3"
-          style="max-height: 100px; max-width: 100px"
-        />
-        <div class="card-body">
-          <h5 class="card-title text-center">Myo Connect</h5>
-          <p class="card-text text-center">
-            Myo Connect is the application that allows you to connect your
-            armband to your computer to access options, gesture recognition, and
-            more. This game requires real-time communication with Myo Connect.
-          </p>
-        </div>
-        <div class="card-footer d-flex justify-content-center">
-          <a class="btn btn-primary">Download Myo Connect</a>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card h-100">
+      <div class="card text-center">
         <img
           src="{{ url_for('static', filename='images/user.png') }}"
           class="card-img-top mx-auto mt-3"
-          style="max-height: 100px; max-width: 100px"
+          alt="..."
+          style="max-width: 100px"
         />
         <div class="card-body">
-          <h5 class="card-title text-center">User Account</h5>
-          <p class="card-text text-center">
-            If you do not have a user account in this website
-            Monitor the whole infrastructure. Add or remove components, see
-            statistics about each section of the city, and be aware of upcoming
-            urgencies with our AI fill level prediction. Send announcements to
-            citizens and/or drivers and receive reports about problems.
+          <h5 class="card-title">User account</h5>
+          <p class="card-text">
+            A user account in this website is required so that your in-game
+            progress along with your settings are stored.
           </p>
-        </div>
-        <div class="card-footer d-flex justify-content-center">
-          <a class="btn btn-primary">Create User Account</a>
+          <div>
+            <a
+              class="btn btn-outline-primary"
+              href="{{ url_for('home.register') }}"
+              role="button"
+              >Create a user account</a
+            >
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<div
+  class="container mt-4 d-block bg-light border rounded-3 border-3"
+  style="max-width: 720px"
+>
+  <h3 class="my-3 text-center">
+    Are the above <span class="text-success">done</span>?
+  </h3>
+  <p class="lead text-center">
+    Just <strong>Log in</strong> and then hit the
+    <strong>Go to Game</strong> button in the navigation bar!
+  </p>
+</div>
 {% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %} {% block title %}Myo Connect{% endblock %} {% block
+navbar_links %}
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.index') }}"
+    role="button"
+    >Homepage</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-secondary me-2"
+    href="{{ url_for('home.myo') }}"
+    role="button"
+    >Myo Connect</a
+  >
+</li>
+<li class="nav-item">
+  {% if current_user.is_authenticated %} {% if current_user.pro_id %}
+  <a
+    class="btn btn-warning me-2"
+    href="{{ url_for('game.index') }}"
+    role="button"
+    >Go to Game</a
+  >
+  {% else %}
+  <a class="btn btn-warning me-2" href="#" role="button">Go to Dashboard</a>
+  {% endif %} {% else %}<a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.register') }}"
+    role="button"
+    >Create account</a
+  >
+  {% endif %}
+</li>
+{% endblock %} {% block navbar_span %} {% if current_user.is_authenticated %}
+<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
+  >Log out</a
+>{% else %}<a
+  class="btn btn-primary ms-2"
+  href="{{ url_for('home.login') }}"
+  role="button"
+  >Log in</a
+>{% endif %}{% endblock %}{% block content %}
+
+<div class="container d-flex justify-content-center my-4">
+  <h1 class="text-uppercase">Downloads</h1>
+</div>
+
+<div
+  class="container d-block text-center my-4 p-4 rounded border border-3 bg-light"
+  style="max-width: 540px"
+>
+  <div class="row">
+    <div class="col">
+      <div class="row justify-content-center mt-2">
+        <img
+          src="{{ url_for('static', filename='images/win.png') }}"
+          style="max-width: 80px"
+        />
+      </div>
+      <div class="row justify-content-center mt-3">
+        <a
+          href="{{ url_for('static', filename='downloads/Myo+Connect+Installer.exe') }}"
+          >Myo Connect for Windows</a
+        >
+      </div>
+    </div>
+    <div class="col">
+      <div class="row justify-content-center mt-2">
+        <img
+          src="{{ url_for('static', filename='images/mac.png') }}"
+          style="max-width: 80px"
+        />
+      </div>
+      <div class="row justify-content-center mt-3">
+        <a href="{{ url_for('static', filename='downloads/MyoConnect.dmg') }}"
+          >Myo Connect for macOS</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
