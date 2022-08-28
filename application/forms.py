@@ -26,12 +26,19 @@ class RegistrationForm(FlaskForm):
     confirm = PasswordField('Repeat Password')
 
     professional = StringField(
-        'If a healthcare professional suggested the game, enter his username.')
+        'If a health professional suggested you the game, enter his username.')
 
     def validate_professional(form, field):
-        if field.data != '' and not Professional.query.filter_by(username=field.data).first():
+        if form.user_type.data == 'professional' and field.data != '':
             raise ValidationError(
-                'Username for healthcare worker does not exist.')
+                'If you are a health professional you should leave the last field empty.')
+        elif form.user_type.data == 'patient':
+            if field.data == '':
+                raise ValidationError(
+                    'Health professional username is required.')
+            elif not Professional.query.filter_by(username=field.data).first():
+                raise ValidationError(
+                    'Username for health professional does not exist.')
 
     user_type = RadioField('Are you a health professional?', choices=[(
         'patient', 'No'), ('professional', 'Yes')], validators=[InputRequired()])

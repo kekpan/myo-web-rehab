@@ -17,5 +17,7 @@ def build_app():
     app.register_blueprint(game_bp)
     from application.api import api_bp
     app.register_blueprint(api_bp)
+    from application.med import med_bp
+    app.register_blueprint(med_bp)
 
     return app

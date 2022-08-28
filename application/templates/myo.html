@@ -13,7 +13,7 @@ navbar_links %}
     class="btn btn-secondary me-2"
     href="{{ url_for('home.myo') }}"
     role="button"
-    >Myo Connect</a
+    >Downloads</a
   >
 </li>
 <li class="nav-item">
@@ -25,12 +25,12 @@ navbar_links %}
     >Go to Game</a
   >
   {% else %}
-  <a class="btn btn-warning me-2" href="#" role="button">Go to Dashboard</a>
+  <a class="btn btn-warning me-2" href="{{ url_for('med.index') }}" role="button">Dashboard</a>
   {% endif %} {% else %}<a
     class="btn btn-outline-primary me-2"
     href="{{ url_for('home.register') }}"
     role="button"
-    >Create account</a
+    >Registration</a
   >
   {% endif %}
 </li>

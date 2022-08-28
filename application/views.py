@@ -52,7 +52,10 @@ def login():
                 login_user(user, remember=True)
                 flash(
                     [f'You were successfully logged in, {user.username}.'], category='success')
-                return redirect(url_for('home.index'))
+                if hasattr(user, 'pro_id'):
+                    return redirect(url_for('home.index'))
+                else:
+                    return redirect(url_for('med.index'))
 
         flash(error, category='danger')
 
@@ -78,7 +81,10 @@ def register():
             flash([f'Thanks for registering. You are now logged in.'],
                   category='success')
             login_user(user, remember=True)
-            return redirect(url_for('home.index'))
+            if hasattr(user, 'pro_id'):
+                return redirect(url_for('home.index'))
+            else:
+                return redirect(url_for('med.index'))
 
         for error in form.errors.values():
             flash(error, category='danger')

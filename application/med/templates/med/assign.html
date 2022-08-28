@@ -1,0 +1,59 @@
+{% extends "med/base.html" %} {% block title %}New routine{% endblock %} {%
+block navbar_links %}
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.index') }}"
+    role="button"
+    >Homepage</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.myo') }}"
+    role="button"
+    >Downloads</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('med.index') }}"
+    role="button"
+    >Dashboard</a
+  >
+</li>
+{% endblock %} {% block navbar_span %}
+<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
+  >Log out</a
+>{% endblock %} {% block content %}
+
+<div
+  class="container d-flex justify-content-center my-4 p-0"
+  style="max-width: 720px"
+>
+  <ul class="nav nav-pills nav-justified w-100">
+    <li class="nav-item">
+      <a
+        class="btn btn-outline-primary w-75"
+        href="{{ url_for('med.patients') }}"
+        >Patients</a
+      >
+    </li>
+    <li class="nav-item">
+      <a
+        class="btn btn-outline-primary w-75"
+        href="{{ url_for('med.routines') }}"
+        >Routines</a
+      >
+    </li>
+    <li class="nav-item">
+      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
+        >New routine</a
+      >
+    </li>
+  </ul>
+</div>
+
+{% endblock %}

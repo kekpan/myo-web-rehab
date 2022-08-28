@@ -1,0 +1,145 @@
+{% extends "med/base.html" %} {% block title %}Patient {{ patient.username }}{%
+endblock %} {% block navbar_links %}
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.index') }}"
+    role="button"
+    >Homepage</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.myo') }}"
+    role="button"
+    >Downloads</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('med.index') }}"
+    role="button"
+    >Dashboard</a
+  >
+</li>
+{% endblock %} {% block navbar_span %}
+<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
+  >Log out</a
+>{% endblock %} {% block content %}
+
+<div
+  class="container d-flex justify-content-center my-4 p-0"
+  style="max-width: 720px"
+>
+  <ul class="nav nav-pills nav-justified w-100">
+    <li class="nav-item">
+      <a
+        class="btn btn-outline-primary w-75"
+        href="{{ url_for('med.patients') }}"
+        >Patients</a
+      >
+    </li>
+    <li class="nav-item">
+      <a
+        class="btn btn-outline-primary w-75"
+        href="{{ url_for('med.routines') }}"
+        >Routines</a
+      >
+    </li>
+    <li class="nav-item">
+      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
+        >New routine</a
+      >
+    </li>
+  </ul>
+</div>
+
+<div
+  class="container mt-4 d-block bg-light border rounded-3 border-3 p-1"
+  style="max-width: 540px"
+>
+  <table class="table table-borderless">
+    <tbody>
+      <tr>
+        <td class="text-end w-50"><strong>Username</strong></td>
+        <td>{{ patient.username }}</td>
+      </tr>
+      <tr>
+        <td class="text-end w-50"><strong>Routine assigned</strong></td>
+        <td>
+          {{ patient.prog_group }} {% if patient.prog_group %}
+          <a
+            class="badge bg-primary text-wrap ms-2"
+            style="text-decoration: none"
+            href="{{ url_for('med.details', id=patient.prog_group) }}"
+            >Browse</a
+          >
+          {% else %}
+          <a
+            class="badge bg-primary text-wrap ms-2"
+            style="text-decoration: none"
+            href="{{ url_for('med.assign')}}?user={{patient.username}}"
+            >Assign</a
+          >
+          {% endif %}
+        </td>
+      </tr>
+      <tr>
+        <td class="text-end w-50"><strong>Days completed</strong></td>
+        <td>{{ patient.days_done }} / {{ tot_days }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div
+  class="container mt-4 d-block bg-light border rounded-3 border-3 p-1"
+  style="max-width: 540px"
+>
+  <div class="accordion accordion-flush" id="accordionFlushExample">
+    {% if not sessions[0] %}
+    <div class="text-center">This user has no game sessions yet.</div>
+    {% endif %} {% for s in sessions %}
+    <div class="accordion-item bg-light">
+      <h2 class="accordion-header" id="flush-heading{{s.id}}">
+        <button
+          class="accordion-button collapsed bg-light"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#flush-collapse{{s.id}}"
+          aria-expanded="false"
+          aria-controls="flush-collapse{{s.id}}"
+        >
+          Session Day #{{patient.days_done-loop.index+1}}
+        </button>
+      </h2>
+      <div
+        id="flush-collapse{{s.id}}"
+        class="accordion-collapse collapse"
+        aria-labelledby="flush-heading{{s.id}}"
+        data-bs-parent="#accordionFlushExample"
+      >
+        <div class="accordion-body">
+          <p>
+            <strong>Date:</strong> {{ s.start_ts.strftime("%d/%m/%Y, %H:%M") }}
+          </p>
+          <p>
+            <strong>Duration:</strong> {{
+            ((s.end_ts-s.start_ts)|string).split(".")[0] }}
+          </p>
+          <p>
+            <strong>Completion:</strong> {{
+            '%d'|format((s.wvi_sets+s.wvo_sets+s.fst_sets+s.dtp_sets+s.fsd_sets)*100/(programs[loop.index-1].wvi_sets+programs[loop.index-1].wvo_sets+programs[loop.index-1].fst_sets+programs[loop.index-1].dtp_sets+programs[loop.index-1].fsd_sets))
+            }}%
+          </p>
+          <p><strong>Issue:</strong> {{ s.issue }}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

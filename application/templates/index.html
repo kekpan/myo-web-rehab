@@ -13,7 +13,7 @@ navbar_links %}
     class="btn btn-outline-primary me-2"
     href="{{ url_for('home.myo') }}"
     role="button"
-    >Myo Connect</a
+    >Downloads</a
   >
 </li>
 <li class="nav-item">
@@ -25,12 +25,12 @@ navbar_links %}
     >Go to Game</a
   >
   {% else %}
-  <a class="btn btn-warning me-2" href="#" role="button">Go to Dashboard</a>
+  <a class="btn btn-warning me-2" href="{{ url_for('med.index') }}" role="button">Dashboard</a>
   {% endif %} {% else %}<a
     class="btn btn-outline-primary me-2"
     href="{{ url_for('home.register') }}"
     role="button"
-    >Create account</a
+    >Registration</a
   >
   {% endif %}
 </li>
@@ -88,8 +88,8 @@ navbar_links %}
         <div class="card-body">
           <h5 class="card-title">User account</h5>
           <p class="card-text">
-            A user account in this website is required so that your in-game
-            progress along with your settings are stored.
+            A user account in this website<br />is required for storing your
+            in-game progress along with your settings.
           </p>
           <div>
             <a
@@ -114,7 +114,7 @@ navbar_links %}
   </h3>
   <p class="lead text-center">
     Just <strong>Log in</strong> and then hit the
-    <strong>Go to Game</strong> button in the navigation bar!
+    <strong>Go to Game</strong> button on the navigation bar above!
   </p>
 </div>
 {% endblock %}
