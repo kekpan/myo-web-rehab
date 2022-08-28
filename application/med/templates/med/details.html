@@ -1,58 +1,102 @@
-{% extends "med/base.html" %} {% block title %}Routine {{id}}{% endblock %} {% block
-    navbar_links %}
+{% extends "med/base.html" %} {% block title %}Routine
+{{programs[0].prog_group}}{% endblock %} {% block navbar_links %}
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.index') }}"
+    role="button"
+    >Homepage</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('home.myo') }}"
+    role="button"
+    >Downloads</a
+  >
+</li>
+<li class="nav-item">
+  <a
+    class="btn btn-outline-primary me-2"
+    href="{{ url_for('med.index') }}"
+    role="button"
+    >Dashboard</a
+  >
+</li>
+{% endblock %} {% block navbar_span %}
+<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
+  >Log out</a
+>{% endblock %} {% block content %}
+
+<div
+  class="container d-flex justify-content-center my-4 p-0"
+  style="max-width: 720px"
+>
+  <ul class="nav nav-pills nav-justified w-100">
     <li class="nav-item">
       <a
-        class="btn btn-outline-primary me-2"
-        href="{{ url_for('home.index') }}"
-        role="button"
-        >Homepage</a
+        class="btn btn-outline-primary w-75"
+        href="{{ url_for('med.patients') }}"
+        >Patients</a
       >
     </li>
     <li class="nav-item">
       <a
-        class="btn btn-outline-primary me-2"
-        href="{{ url_for('home.myo') }}"
-        role="button"
-        >Downloads</a
+        class="btn btn-outline-primary w-75"
+        href="{{ url_for('med.routines') }}"
+        >Routines</a
       >
     </li>
     <li class="nav-item">
-      <a
-        class="btn btn-outline-primary me-2"
-        href="{{ url_for('med.index') }}"
-        role="button"
-        >Dashboard</a
+      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
+        >New routine</a
       >
     </li>
-    {% endblock %} {% block navbar_span %}
-    <a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
-      >Log out</a
-    >{% endblock %} {% block content %}
-    
-    <div
-      class="container d-flex justify-content-center my-4 p-0"
-      style="max-width: 720px"
-    >
-      <ul class="nav nav-pills nav-justified w-100">
-        <li class="nav-item">
-          <a
-            class="btn btn-outline-primary w-75"
-            href="{{ url_for('med.patients') }}"
-            >Patients</a
-          >
-        </li>
-        <li class="nav-item">
-          <a class="btn btn-outline-primary w-75" href="{{ url_for('med.routines') }}"
-            >Routines</a
-          >
-        </li>
-        <li class="nav-item">
-          <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
-            >New routine</a
-          >
-        </li>
-      </ul>
-    </div>
-    
-    {% endblock %}
-    
+  </ul>
+</div>
+<div class="row mx-auto" style="max-width: 1320px">
+  <tr class="col p-0">
+    <table class="table table-striped border border-3 align-middle text-center">
+      <thead>
+        <tr>
+          <th scope="col">Week-Day</th>
+          <th scope="col">Wave In</th>
+          <th scope="col">Wave Out</th>
+          <th scope="col">Fist</th>
+          <th scope="col">Fingers Spread</th>
+          <th scope="col">Double Tap</th>
+          <th scope="col">Rests</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for p in programs %}
+        <tr>
+          <th scope="row">
+            {{p.week_no}}-{{p.day_no}}
+          </th>
+          <td>
+            {{ p.wvi_sets }} &times; {{ p.wvi_reps }} &times; {{ p.wvi_dur }}
+          </td>
+          <td>
+            {{ p.wvo_sets }} &times; {{ p.wvo_reps }} &times; {{ p.wvo_dur }}
+          </td>
+          <td>
+            {{ p.fst_sets }} &times; {{ p.fst_reps }} &times; {{ p.fst_dur }}
+          </td>
+          <td>
+            {{ p.fsd_sets }} &times; {{ p.fsd_reps }} &times; {{ p.fsd_dur }}
+          </td>
+          <td>
+            {{ p.dtp_sets }} &times; {{ p.dtp_reps }} &times; {{ p.dtp_dur }}
+          </td>
+          <td>
+            {{ p.rest_sets }}, {{ p.rest_reps }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
-{% extends "med/base.html" %} {% block title %}New routine{% endblock %} {% block
-navbar_links %}
+{% extends "med/base.html" %} {% block title %}New routine{% endblock %} {%
+block navbar_links %}
 <li class="nav-item">
   <a
     class="btn btn-outline-primary me-2"
@@ -54,6 +54,29 @@ navbar_links %}
       >
     </li>
   </ul>
+</div>
+
+<div class="container my-4 d-block bg-light border rounded-3 border-3 p-0">
+  <form method="post">
+    {{ form.hidden_tag() }} {% for w in range(1, 5) %} {% for d in range(1, 8)
+    %}
+    <div class="row w-100 mx-auto py-2 border-bottom">
+      <div class="col d-flex justify-content-center align-items-center">
+        <strong>Week {{w}}, Day {{d}}</strong>
+      </div>
+      <div class="col">{{ form['wvi_'+w|string+d|string](class="form-control text-center") }}</div>
+      <div class="col">{{ form['wvo_'+w|string+d|string](class="form-control text-center") }}</div>
+      <div class="col">{{ form['fst_'+w|string+d|string](class="form-control text-center") }}</div>
+      <div class="col">{{ form['fsd_'+w|string+d|string](class="form-control text-center") }}</div>
+      <div class="col">{{ form['dtp_'+w|string+d|string](class="form-control text-center") }}</div>
+      <div class="col">{{ form['rst_'+w|string+d|string](class="form-control text-center") }}</div>
+    </div>
+
+    {% endfor %} {% endfor %}
+    <div class="py-3 d-flex justify-content-center">
+      <input type="submit" class="btn btn-primary w-50" value="Submit" />
+    </div>
+  </form>
 </div>
 
 {% endblock %}

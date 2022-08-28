@@ -42,11 +42,13 @@ navbar_links %}
     >Patients</a
   >
   <a
-    href="#"
+    href="{{ url_for('med.routines') }}"
     class="list-group-item list-group-item-action border-0 border-bottom"
     >Exercise routines</a
   >
-  <a href="#" class="list-group-item list-group-item-action border-0"
+  <a
+    href="{{ url_for('med.create') }}"
+    class="list-group-item list-group-item-action border-0"
     >New exercise routine</a
   >
 </div>
