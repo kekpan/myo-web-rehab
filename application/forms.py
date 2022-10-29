@@ -26,7 +26,7 @@ class RegistrationForm(FlaskForm):
     confirm = PasswordField('Repeat Password')
 
     professional = StringField(
-        'If a health professional suggested you the game, enter his username.')
+        'If not, enter your therapist\'s username.')
 
     def validate_professional(form, field):
         if form.user_type.data == 'professional' and field.data != '':
@@ -40,7 +40,7 @@ class RegistrationForm(FlaskForm):
                 raise ValidationError(
                     'Username for health professional does not exist.')
 
-    user_type = RadioField('Are you a health professional?', choices=[(
+    user_type = RadioField('Are you a therapist?', choices=[(
         'patient', 'No'), ('professional', 'Yes')], validators=[InputRequired()])
 
 

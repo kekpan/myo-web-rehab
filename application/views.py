@@ -12,12 +12,12 @@ home_bp = Blueprint('home', __name__)
 
 @home_bp.route('/')
 def index():
-    return render_template('index.html')
-
-
-@home_bp.route('/myo')
-def myo():
-    return render_template('myo.html')
+    if current_user.is_authenticated and not hasattr(current_user, 'pro_id'):
+        pending = Patient.query.filter_by(
+            pro_id=current_user.id, prog_group=None).count()
+    else:
+        pending = 0
+    return render_template('index.html', pending=pending)
 
 
 def logout_required(view):
@@ -52,10 +52,7 @@ def login():
                 login_user(user, remember=True)
                 flash(
                     [f'You were successfully logged in, {user.username}.'], category='success')
-                if hasattr(user, 'pro_id'):
-                    return redirect(url_for('home.index'))
-                else:
-                    return redirect(url_for('med.index'))
+                return redirect(url_for('home.index'))
 
         flash(error, category='danger')
 
@@ -81,10 +78,7 @@ def register():
             flash([f'Thanks for registering. You are now logged in.'],
                   category='success')
             login_user(user, remember=True)
-            if hasattr(user, 'pro_id'):
-                return redirect(url_for('home.index'))
-            else:
-                return redirect(url_for('med.index'))
+            return redirect(url_for('home.index'))
 
         for error in form.errors.values():
             flash(error, category='danger')

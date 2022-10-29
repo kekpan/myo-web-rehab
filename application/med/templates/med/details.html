@@ -1,102 +1,285 @@
-{% extends "med/base.html" %} {% block title %}Routine
-{{programs[0].prog_group}}{% endblock %} {% block navbar_links %}
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.index') }}"
-    role="button"
-    >Homepage</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.myo') }}"
-    role="button"
-    >Downloads</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('med.index') }}"
-    role="button"
-    >Dashboard</a
-  >
-</li>
-{% endblock %} {% block navbar_span %}
-<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
-  >Log out</a
->{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Routine {{programs[0].prog_group}}{%
+endblock %} {% block content %}
 
 <div
-  class="container d-flex justify-content-center my-4 p-0"
-  style="max-width: 720px"
+  class="container my-4 bg-light border border-dark border-3 rounded-3 text-center"
+  style="--bs-bg-opacity: 0.75"
 >
-  <ul class="nav nav-pills nav-justified w-100">
-    <li class="nav-item">
-      <a
-        class="btn btn-outline-primary w-75"
-        href="{{ url_for('med.patients') }}"
-        >Patients</a
-      >
-    </li>
-    <li class="nav-item">
-      <a
-        class="btn btn-outline-primary w-75"
-        href="{{ url_for('med.routines') }}"
-        >Routines</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
-        >New routine</a
-      >
-    </li>
-  </ul>
-</div>
-<div class="row mx-auto" style="max-width: 1320px">
-  <tr class="col p-0">
-    <table class="table table-striped border border-3 align-middle text-center">
-      <thead>
-        <tr>
-          <th scope="col">Week-Day</th>
-          <th scope="col">Wave In</th>
-          <th scope="col">Wave Out</th>
-          <th scope="col">Fist</th>
-          <th scope="col">Fingers Spread</th>
-          <th scope="col">Double Tap</th>
-          <th scope="col">Rests</th>
-        </tr>
-      </thead>
-      <tbody>
+  <h1 class="text-uppercase mt-3 mb-0">Routine details</h1>
+
+  <p class="mb-3">
+    The times are expressed in seconds. Description of the supported gestures at
+    the <a href="#heading2" class="text-dark">end of page</a>.
+  </p>
+
+  <table class="table table-light table-hover border border-3">
+    <tbody>
       {% for p in programs %}
-        <tr>
-          <th scope="row">
-            {{p.week_no}}-{{p.day_no}}
-          </th>
-          <td>
-            {{ p.wvi_sets }} &times; {{ p.wvi_reps }} &times; {{ p.wvi_dur }}
-          </td>
-          <td>
-            {{ p.wvo_sets }} &times; {{ p.wvo_reps }} &times; {{ p.wvo_dur }}
-          </td>
-          <td>
-            {{ p.fst_sets }} &times; {{ p.fst_reps }} &times; {{ p.fst_dur }}
-          </td>
-          <td>
-            {{ p.fsd_sets }} &times; {{ p.fsd_reps }} &times; {{ p.fsd_dur }}
-          </td>
-          <td>
-            {{ p.dtp_sets }} &times; {{ p.dtp_reps }} &times; {{ p.dtp_dur }}
-          </td>
-          <td>
-            {{ p.rest_sets }}, {{ p.rest_reps }}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      <tr class="border border-3">
+        <td class="py-3 pe-0" width="30%">
+          <table
+            class="table table-light table-sm table-hover table-borderless mb-0"
+          >
+            <thead>
+              <tr>
+                <th scope="row" width="50%">Week-Day</th>
+                <th width="50%">{{p.week_no}}-{{week_day[loop.index-1]}}</th>
+              </tr>
+              <tr>
+                <th scope="row" width="50%">Overall Day</th>
+                <td width="50%">#{{p.day_no}}</td>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" width="50%">Sets Rest Time</th>
+                <td width="50%">{{ p.rest_sets }}</td>
+              </tr>
+              <tr>
+                <th scope="row" width="50%">Reps Rest Time</th>
+                <td width="50%">{{ p.rest_reps }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+        <td class="py-3 ps-0">
+          <table
+            class="table table-light table-sm table-hover table-borderless mb-0"
+          >
+            <thead>
+              <tr>
+                <th scope="col" width="16%"></th>
+                <th scope="col" width="16%">Wave In</th>
+                <th scope="col" width="16%">Wave Out</th>
+                <th scope="col" width="16%">Fist</th>
+                <th scope="col" width="16%">F. Spread</th>
+                <th scope="col" width="16%">Dbl. Tap</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" width="16%">Sets</th>
+                <td width="16%">{{ p.wvi_sets }}</td>
+                <td width="16%">{{ p.wvo_sets }}</td>
+                <td width="16%">{{ p.fst_sets }}</td>
+                <td width="16%">{{ p.fsd_sets }}</td>
+                <td width="16%">{{ p.dtp_sets }}</td>
+              </tr>
+              <tr>
+                <th scope="row" width="16%">Reps</th>
+                <td width="16%">{{ p.wvi_reps }}</td>
+                <td width="16%">{{ p.wvo_reps }}</td>
+                <td width="16%">{{ p.fst_reps }}</td>
+                <td width="16%">{{ p.fsd_reps }}</td>
+                <td width="16%">{{ p.dtp_reps }}</td>
+              </tr>
+              <tr>
+                <th scope="row" width="16%">Time</th>
+                <td width="16%">{{ p.wvi_dur }}</td>
+                <td width="16%">{{ p.wvo_dur }}</td>
+                <td width="16%">{{ p.fst_dur }}</td>
+                <td width="16%">{{ p.fsd_dur }}</td>
+                <td width="16%">{{ p.dtp_dur }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h1 class="text-uppercase mt-4 mb-3" id="heading2">Gestures description</h1>
+  <div class="container mb-4 bg-light border border-3">
+    <div class="row align-items-center">
+      <div class="col">
+        <div class="mb-2">
+          Use the arrows to cycle through the examples of gestures.
+        </div>
+        <div
+          id="carouselCaptions"
+          class="carousel carousel-dark slide border border-dark mx-auto"
+          data-bs-ride="false"
+          style="max-width: 400px"
+        >
+          <div class="carousel-indicators mb-1">
+            <button
+              type="button"
+              data-bs-target="#carouselCaptions"
+              data-bs-slide-to="0"
+              class="active"
+              aria-current="true"
+              aria-label="Slide 1"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#carouselCaptions"
+              data-bs-slide-to="1"
+              aria-label="Slide 2"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#carouselCaptions"
+              data-bs-slide-to="2"
+              aria-label="Slide 3"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#carouselCaptions"
+              data-bs-slide-to="3"
+              aria-label="Slide 4"
+            ></button>
+            <button
+              type="button"
+              data-bs-target="#carouselCaptions"
+              data-bs-slide-to="4"
+              aria-label="Slide 5"
+            ></button>
+          </div>
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img
+                src="{{ url_for('static', filename='images/in-photo.png') }}"
+                class="d-block w-100"
+              />
+              <div class="carousel-caption d-none d-md-block h-100">
+                <div
+                  class="mt-2 bg-info rounded-pill w-75 mx-auto"
+                  style="--bs-bg-opacity: 0.75"
+                >
+                  <p class="fw-bold my-0">Wave In</p>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <img
+                src="{{ url_for('static', filename='images/out-photo.png') }}"
+                class="d-block w-100"
+              />
+              <div class="carousel-caption d-none d-md-block h-100">
+                <div
+                  class="mt-2 bg-info rounded-pill w-75 mx-auto"
+                  style="--bs-bg-opacity: 0.75"
+                >
+                  <p class="fw-bold my-0">Wave Out</p>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <img
+                src="{{ url_for('static', filename='images/fist-photo.png') }}"
+                class="d-block w-100"
+              />
+              <div class="carousel-caption d-none d-md-block h-100">
+                <div
+                  class="mt-2 bg-info rounded-pill w-75 mx-auto"
+                  style="--bs-bg-opacity: 0.75"
+                >
+                  <p class="fw-bold my-0">Fist</p>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <img
+                src="{{ url_for('static', filename='images/spread-photo.png') }}"
+                class="d-block w-100"
+              />
+              <div class="carousel-caption d-none d-md-block h-100">
+                <div
+                  class="mt-2 bg-info rounded-pill w-75 mx-auto"
+                  style="--bs-bg-opacity: 0.75"
+                >
+                  <p class="fw-bold my-0">Fingers Spread</p>
+                </div>
+              </div>
+            </div>
+            <div class="carousel-item">
+              <img
+                src="{{ url_for('static', filename='images/tap-photo.png') }}"
+                class="d-block w-100"
+              />
+              <div class="carousel-caption d-none d-md-block h-100">
+                <div
+                  class="mt-2 bg-info rounded-pill w-75 mx-auto"
+                  style="--bs-bg-opacity: 0.75"
+                >
+                  <p class="fw-bold my-0">Double Tap</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button
+            class="carousel-control-prev align-items-start mt-1 justify-content-start"
+            type="button"
+            data-bs-target="#carouselCaptions"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button
+            class="carousel-control-next align-items-start mt-1 justify-content-end"
+            type="button"
+            data-bs-target="#carouselCaptions"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="row py-1 text-start">
+          <div class="col">
+            <img
+              src="{{ url_for('static', filename='images/in-icon.png') }}"
+              style="max-height: 48px"
+            />
+            <strong>Wave In:</strong> Wave to the left if Myo is worn on the
+            right arm, else to the right.
+          </div>
+        </div>
+        <div class="row py-1 text-start">
+          <div class="col">
+            <img
+              src="{{ url_for('static', filename='images/out-icon.png') }}"
+              style="max-height: 48px"
+            />
+            <strong>Wave Out:</strong> Wave to the right if Myo is worn on the
+            right arm, else to the left.
+          </div>
+        </div>
+        <div class="row py-1 text-start">
+          <div class="col">
+            <img
+              src="{{ url_for('static', filename='images/fist-icon.png') }}"
+              style="max-height: 48px"
+            />
+            <strong>Fist:</strong> Make a fist.
+          </div>
+        </div>
+        <div class="row py-1 text-start">
+          <div class="col">
+            <img
+              src="{{ url_for('static', filename='images/spread-icon.png') }}"
+              style="max-height: 48px"
+            />
+            <strong>Fingers Spread:</strong> Spread all fingers.
+          </div>
+        </div>
+        <div class="row py-1 text-start">
+          <div class="col">
+            <img
+              src="{{ url_for('static', filename='images/tap-icon.png') }}"
+              style="max-height: 48px"
+            />
+            <strong>Double Tap:</strong> Quickly tap the thumb against the
+            middle finger twice.
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
 {% endblock %}

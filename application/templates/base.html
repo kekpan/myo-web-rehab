@@ -14,6 +14,13 @@
       crossorigin="anonymous"
     />
 
+    {% block head %}{% endblock %}
+
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+
     <!-- Favicon -->
     <link
       rel="icon"
@@ -26,7 +33,7 @@
   </head>
 
   <body>
-    <nav class="navbar navbar-expand-lg bg-light border-bottom border-3 mb-3">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('home.index') }}">
           <img
@@ -47,18 +54,45 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav">
-            {% block navbar_links %}{% endblock %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('home.index') }}">Home</a>
+            </li>
+            {% if current_user.is_authenticated %} {% if current_user.pro_id %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('game.index') }}">Game</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('med.patients') }}"
+                >Patients</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('med.routines') }}"
+                >Routines</a
+              >
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('home.logout') }}">Logout</a>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('home.register') }}"
+                >Register</a
+              >
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('home.login') }}">Login</a>
+            </li>
+            {% endif %}
           </ul>
         </div>
-        <span>
-          {% if current_user.is_authenticated %}
-          <span class="btn btn-light disabled ps-0 pe-1"
-            >You are logged in as:
-            <strong>{{ current_user.username }}</strong></span
-          >{% else %}<span class="btn btn-light disabled ps-0 pe-1"
-            >Not logged in</span
-          >{% endif %} {% block navbar_span %}{% endblock %}
-        </span>
+        <span class="navbar-text"
+          >{% if current_user.is_authenticated %}Logged in:
+          <strong>{{ current_user.username }}</strong>{% else %}Not logged in{%
+          endif %}</span
+        >
       </div>
     </nav>
 

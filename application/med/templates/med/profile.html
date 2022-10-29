@@ -1,65 +1,12 @@
-{% extends "med/base.html" %} {% block title %}Patient {{ patient.username }}{%
-endblock %} {% block navbar_links %}
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.index') }}"
-    role="button"
-    >Homepage</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.myo') }}"
-    role="button"
-    >Downloads</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('med.index') }}"
-    role="button"
-    >Dashboard</a
-  >
-</li>
-{% endblock %} {% block navbar_span %}
-<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
-  >Log out</a
->{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Patient {{ patient.username }}{%
+endblock %} {% block content %}
 
 <div
-  class="container d-flex justify-content-center my-4 p-0"
-  style="max-width: 720px"
+  class="container my-4 bg-light border border-dark border-3 rounded-3"
+  style="--bs-bg-opacity: 0.75; max-width: 540px"
 >
-  <ul class="nav nav-pills nav-justified w-100">
-    <li class="nav-item">
-      <a
-        class="btn btn-outline-primary w-75"
-        href="{{ url_for('med.patients') }}"
-        >Patients</a
-      >
-    </li>
-    <li class="nav-item">
-      <a
-        class="btn btn-outline-primary w-75"
-        href="{{ url_for('med.routines') }}"
-        >Routines</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
-        >New routine</a
-      >
-    </li>
-  </ul>
-</div>
+  <h1 class="text-uppercase my-3 text-center">Patient profile</h1>
 
-<div
-  class="container mt-4 d-block bg-light border rounded-3 border-3 p-1"
-  style="max-width: 540px"
->
   <table class="table table-borderless">
     <tbody>
       <tr>
@@ -67,7 +14,7 @@ endblock %} {% block navbar_links %}
         <td>{{ patient.username }}</td>
       </tr>
       <tr>
-        <td class="text-end w-50"><strong>Routine assigned</strong></td>
+        <td class="text-end w-50"><strong>Routine ID</strong></td>
         <td>
           {{ patient.prog_group }} {% if patient.prog_group %}
           <a
@@ -87,20 +34,23 @@ endblock %} {% block navbar_links %}
         </td>
       </tr>
       <tr>
-        <td class="text-end w-50"><strong>Days completed</strong></td>
-        <td>{{ patient.days_done }} / {{ tot_days }}</td>
+        <td class="text-end w-50"><strong>Progress</strong></td>
+        <td>
+          {% if tot_days %}{{ (patient.days_done * 100 / tot_days)|int }}% ({{
+          patient.days_done }}/{{ tot_days }}){% else %}N/A{% endif %}
+        </td>
       </tr>
     </tbody>
   </table>
-</div>
 
-<div
-  class="container mt-4 d-block bg-light border rounded-3 border-3 p-1"
-  style="max-width: 540px"
->
-  <div class="accordion accordion-flush" id="accordionFlushExample">
+  <div
+    class="accordion accordion-flush my-3 border border-3"
+    id="accordionFlush"
+  >
     {% if not sessions[0] %}
-    <div class="text-center">This user has no game sessions yet.</div>
+    <p class="bg-light m-0 p-1 blockquote text-center">
+      This user has no game sessions yet.
+    </p>
     {% endif %} {% for s in sessions %}
     <div class="accordion-item bg-light">
       <h2 class="accordion-header" id="flush-heading{{s.id}}">
@@ -119,7 +69,7 @@ endblock %} {% block navbar_links %}
         id="flush-collapse{{s.id}}"
         class="accordion-collapse collapse"
         aria-labelledby="flush-heading{{s.id}}"
-        data-bs-parent="#accordionFlushExample"
+        data-bs-parent="#accordionFlush"
       >
         <div class="accordion-body">
           <p>

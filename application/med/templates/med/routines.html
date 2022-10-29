@@ -1,89 +1,45 @@
-{% extends "med/base.html" %} {% block title %}Routines{% endblock %} {% block
-navbar_links %}
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.index') }}"
-    role="button"
-    >Homepage</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.myo') }}"
-    role="button"
-    >Downloads</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('med.index') }}"
-    role="button"
-    >Dashboard</a
-  >
-</li>
-{% endblock %} {% block navbar_span %}
-<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
-  >Log out</a
->{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Routines{% endblock %} {% block
+content %}
 
 <div
-  class="container d-flex justify-content-center my-4 p-0"
-  style="max-width: 720px"
+  class="container my-4 bg-light border border-dark border-3 rounded-3 text-center"
+  style="--bs-bg-opacity: 0.75"
 >
-  <ul class="nav nav-pills nav-justified w-100">
-    <li class="nav-item">
-      <a
-        class="btn btn-outline-primary w-75"
-        href="{{ url_for('med.patients') }}"
-        >Patients</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="btn btn-secondary w-75" href="{{ url_for('med.routines') }}"
-        >Routines</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
-        >New routine</a
-      >
-    </li>
-  </ul>
-</div>
+  <h1 class="text-uppercase mt-3 mb-0">Routines list</h1>
 
-<div class="row mx-auto" style="max-width: 720px">
-  <div class="col p-0" style="height: 526px">
-    <table class="table table-striped border border-3 align-middle text-center">
-      <thead>
-        <tr>
-          <th scope="col">Routine ID</th>
-          <th scope="col"># of weeks</th>
-          <th scope="col"># of days</th>
-          <th scope="col">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for key, value in programs_dict.items() %}
-        <tr>
-          <th scope="row">{{ key }}</th>
-          <td>{{ value[-1].week_no }}</td>
-          <td>{{ value[-1].day_no }}</td>
-          <td>
-            <a
-              class="btn btn-primary btn-sm"
-              href="{{ url_for('med.routines') }}/{{ key }}"
-              role="button"
-              >More info</a
-            >
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  <div class="rounded-pill w-25 mx-auto mt-2 mb-3">
+    <a
+      class="btn btn-dark rounded-pill w-100"
+      href="{{ url_for('med.create') }}"
+      role="button"
+      >Create new routine</a
+    >
   </div>
+
+  <table class="table table-light table-hover border border-3">
+    <thead>
+      <tr>
+        <th scope="col">Routine ID</th>
+        <th scope="col"># of weeks</th>
+        <th scope="col"># of days</th>
+        <th scope="col">Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key, value in programs_dict.items() %}
+      <tr>
+        <td width="25%">{{ key }}</td>
+        <td width="25%">{{ value[-1].week_no }}</td>
+        <td width="25%">{{ value[-1].day_no }}</td>
+        <td width="25%">
+          <a class="text-dark" href="{{ url_for('med.routines') }}/{{ key }}"
+            >Details</a
+          >
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 {% endblock %}

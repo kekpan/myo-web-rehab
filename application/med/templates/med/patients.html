@@ -1,107 +1,69 @@
-{% extends "med/base.html" %} {% block title %}Patients{% endblock %} {% block
-navbar_links %}
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.index') }}"
-    role="button"
-    >Homepage</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.myo') }}"
-    role="button"
-    >Downloads</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('med.index') }}"
-    role="button"
-    >Dashboard</a
-  >
-</li>
-{% endblock %} {% block navbar_span %}
-<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
-  >Log out</a
->{% endblock %} {% block content %}
+{% extends "base.html" %} {% block title %}Patients{% endblock %} {% block
+content %}
 
 <div
-  class="container d-flex justify-content-center my-4 p-0"
-  style="max-width: 720px"
+  class="container my-4 bg-light border border-dark border-3 rounded-3 text-center"
+  style="--bs-bg-opacity: 0.75"
 >
-  <ul class="nav nav-pills nav-justified w-100">
-    <li class="nav-item">
-      <a class="btn btn-secondary w-75" href="{{ url_for('med.patients') }}"
-        >Patients</a
-      >
-    </li>
-    <li class="nav-item">
-      <a
-        class="btn btn-outline-primary w-75"
-        href="{{ url_for('med.routines') }}"
-        >Routines</a
-      >
-    </li>
-    <li class="nav-item">
-      <a class="btn btn-outline-primary w-75" href="{{ url_for('med.create') }}"
-        >New routine</a
-      >
-    </li>
-  </ul>
-</div>
+  <h1 class="text-uppercase mt-3 mb-0">Patients list</h1>
 
-<div class="row mx-auto" style="max-width: 720px">
-  <div class="col p-0" style="height: 526px">
-    <table class="table table-striped border border-3 align-middle text-center">
-      <thead>
-        <tr>
-          <!-- <th scope="col">#</th> -->
-          <th scope="col">Username</th>
-          <th scope="col">Days Played</th>
-          <th scope="col">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in patients.items %}
-        <tr>
-          <!-- <th scope="row">{{ 10*(patients.page-1)+loop.index }}</th> -->
-          <td>{{ p.username }}</td>
-          <td>{{ p.days_done }} / {{ tot_days[loop.index-1] }}</td>
-          <td>
-            <a
-              class="btn btn-primary btn-sm"
-              href="{{ url_for('med.patients') }}/{{ p.username }}"
-              role="button"
-              >More info</a
-            >
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% if patients.pages|int > 1 %}
-  <nav aria-label="Page navigation">
-    <ul class="pagination justify-content-center my-3">
-      {% for page in patients.iter_pages() %} {% if page %} {% if page !=
-      patients.page %}
-      <li class="page-item">
-        <a class="page-link" href="{{ url_for('med.patients') }}?page={{page}}"
-          >{{ page }}</a
-        >
-      </li>
-      {% else %}
-      <li class="page-item active" aria-current="page">
-        <a class="page-link">{{ page }}</a>
-      </li>
-      {% endif %} {% endif %} {% endfor %}
-    </ul>
-  </nav>
-  {% endif %}
+  <p class="mb-3">
+    Hover over the icons of the Options column to see their descriptions.
+  </p>
+
+  <table class="table table-light table-hover border border-3">
+    <thead>
+      <tr>
+        <th scope="col">Username</th>
+        <th scope="col">Routine ID</th>
+        <th scope="col">Progress</th>
+        <th scope="col">Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in patients %}
+      <tr>
+        <td width="25%">{{ p.username }}</td>
+        {% if p.prog_group %}
+        <td width="25%">{{ p.prog_group }}</td>
+        {% else %}
+        <td width="25%">Pending</td>
+        {% endif %}
+        <td width="25%">
+          {% if tot_days[loop.index-1] %}{{ (p.days_done * 100 /
+          tot_days[loop.index-1])|int }}% ({{ p.days_done }}/{{
+          tot_days[loop.index-1] }}){% else %}N/A{% endif %}
+        </td>
+        <td width="25%">
+          {% if p.prog_group %}
+          <a
+            href="{{ url_for('med.patients') }}/{{ p.username }}"
+            title="Patient sessions"
+            ><img
+              src="{{ url_for('static', filename='images/report-50.png') }}"
+              style="height: 20px"
+          /></a>
+          <a
+            href="{{ url_for('med.details', id=p.prog_group) }}"
+            title="Routine details"
+            ><img
+              src="{{ url_for('static', filename='images/info-50.png') }}"
+              style="height: 20px"
+          /></a>
+          {% else %}
+          <a
+            href="{{ url_for('med.assign')}}?user={{p.username}}"
+            title="Assign routine"
+            ><img
+              src="{{ url_for('static', filename='images/add-26.png') }}"
+              style="height: 20px"
+          /></a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 
 {% endblock %}

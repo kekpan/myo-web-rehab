@@ -1,42 +1,11 @@
 {% extends "base.html" %} {% block title %}Register{% endblock %} {% block
-navbar_links %}
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.index') }}"
-    role="button"
-    >Homepage</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.myo') }}"
-    role="button"
-    >Downloads</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-secondary me-2"
-    href="{{ url_for('home.register') }}"
-    role="button"
-    >Registration</a
-  >
-</li>
-{% endblock %} {% block navbar_span %}
-<a class="btn btn-primary ms-2" href="{{ url_for('home.login') }}" role="button"
-  >Log in</a
->{% endblock %}{% block content %}
-
-<div class="container d-flex justify-content-center my-4">
-  <h1 class="text-uppercase">Registration</h1>
-</div>
+content %}
 
 <div
-  class="container d-block text-center my-4 p-4 rounded border border-3 bg-light"
-  style="max-width: 540px"
+  class="container my-4 bg-light border border-dark border-3 rounded-3 text-center"
+  style="max-width: 540px; --bs-bg-opacity: 0.75"
 >
+  <h1 class="text-uppercase my-3">Register</h1>
   <form method="post">
     {{ form.hidden_tag() }}
     <div class="mb-3">
@@ -55,7 +24,7 @@ navbar_links %}
       {{ form.user_type.label }}
       <div class="row justify-content-center">
         {% for subfield in form.user_type %}
-        <div class="col-3">{{ subfield }} {{ subfield.label }}</div>
+        <div class="col-1">{{ subfield }} {{ subfield.label }}</div>
         {% endfor %}
       </div>
     </div>

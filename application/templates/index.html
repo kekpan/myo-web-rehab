@@ -1,120 +1,161 @@
 {% extends "base.html" %} {% block title %}Homepage{% endblock %} {% block
-navbar_links %}
-<li class="nav-item">
-  <a
-    class="btn btn-secondary me-2"
-    href="{{ url_for('home.index') }}"
-    role="button"
-    >Homepage</a
-  >
-</li>
-<li class="nav-item">
-  <a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.myo') }}"
-    role="button"
-    >Downloads</a
-  >
-</li>
-<li class="nav-item">
-  {% if current_user.is_authenticated %} {% if current_user.pro_id %}
-  <a
-    class="btn btn-warning me-2"
-    href="{{ url_for('game.index') }}"
-    role="button"
-    >Go to Game</a
-  >
-  {% else %}
-  <a class="btn btn-warning me-2" href="{{ url_for('med.index') }}" role="button">Dashboard</a>
-  {% endif %} {% else %}<a
-    class="btn btn-outline-primary me-2"
-    href="{{ url_for('home.register') }}"
-    role="button"
-    >Registration</a
-  >
-  {% endif %}
-</li>
-{% endblock %} {% block navbar_span %} {% if current_user.is_authenticated %}
-<a class="btn btn-danger ms-2" href="{{ url_for('home.logout') }}" role="button"
-  >Log out</a
->{% else %}<a
-  class="btn btn-primary ms-2"
-  href="{{ url_for('home.login') }}"
-  role="button"
-  >Log in</a
->{% endif %}{% endblock %} {% block content %}
-<div
-  class="container mt-4 d-block bg-light border rounded-3 border-3"
-  style="max-width: 720px"
->
-  <h3 class="my-3 text-center">
-    You need 2 things to play
-    <i style="color: #6f42c1">Bleic: The Countdown</i>
-  </h3>
-  <div class="row row-cols-1 row-cols-md-2 g-2 mb-4 mx-2">
-    <div class="col">
-      <div class="card text-center">
-        <img
-          src="{{ url_for('static', filename='images/armband.png') }}"
-          class="card-img-top mx-auto mt-3"
-          alt="..."
-          style="max-width: 100px"
-        />
-        <div class="card-body">
-          <h5 class="card-title">Myo + Myo Connect</h5>
-          <p class="card-text">
-            <em>Myo Connect</em> is the application that allows your
-            <em>Myo armband</em> to communicate with your computer.
-          </p>
-          <div>
-            <a
-              class="btn btn-outline-primary"
-              href="{{ url_for('home.myo') }}"
-              role="button"
-              >Download Myo Connect</a
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card text-center">
-        <img
-          src="{{ url_for('static', filename='images/user.png') }}"
-          class="card-img-top mx-auto mt-3"
-          alt="..."
-          style="max-width: 100px"
-        />
-        <div class="card-body">
-          <h5 class="card-title">User account</h5>
-          <p class="card-text">
-            A user account in this website<br />is required for storing your
-            in-game progress along with your settings.
-          </p>
-          <div>
-            <a
-              class="btn btn-outline-primary"
-              href="{{ url_for('home.register') }}"
-              role="button"
-              >Create a user account</a
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+content %}
 
 <div
-  class="container mt-4 d-block bg-light border rounded-3 border-3"
-  style="max-width: 720px"
+  class="container my-4 bg-light border border-dark border-3 rounded-3 text-center"
+  style="max-width: 720px; --bs-bg-opacity: 0.75"
 >
-  <h3 class="my-3 text-center">
-    Are the above <span class="text-success">done</span>?
-  </h3>
-  <p class="lead text-center">
-    Just <strong>Log in</strong> and then hit the
-    <strong>Go to Game</strong> button on the navigation bar above!
+  <img
+    class="d-flex mx-auto my-3"
+    src="{{ url_for('static', filename='images/logo.png') }}"
+  />
+
+  <div class="mx-auto p-3 bg-warning border border-dark border-1">
+    <h5 class="m-0">
+      The MYO&trade; gesture control armband is required to play this game.
+    </h5>
+  </div>
+
+  <p class="blockquote my-4">
+    This is a video game for upper limb rehabilitation. It is intended to be
+    used by people who undergo physical therapy, in cooperation with their
+    therapist.
   </p>
+
+  {% if current_user.is_authenticated %}
+  <div class="my-3">
+    <h3 class="mb-3">Step-by-step instructions:</h3>
+    {% if current_user.pro_id %}
+    <div class="list-group">
+      <div class="list-group-item py-3">
+        <div class="w-100">
+          <h5 class="mb-1">Download and install Myo Connect</h5>
+        </div>
+        <div class="row justify-content-center mb-1">
+          <div class="col-4">
+            <div class="row justify-content-center mt-2">
+              <img
+                src="{{ url_for('static', filename='images/win.png') }}"
+                style="max-width: 80px"
+              />
+            </div>
+            <div class="row justify-content-center mt-2">
+              <a
+                href="{{ url_for('static', filename='downloads/Myo+Connect+Installer.exe') }}"
+                >Myo Connect for Windows</a
+              >
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="row justify-content-center mt-2">
+              <img
+                src="{{ url_for('static', filename='images/mac.png') }}"
+                style="max-width: 80px"
+              />
+            </div>
+            <div class="row justify-content-center mt-2">
+              <a
+                href="{{ url_for('static', filename='downloads/MyoConnect.dmg') }}"
+                >Myo Connect for macOS</a
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="list-group-item py-3">
+        <div class="w-100">
+          <h5 class="mb-1">Wait for your routine assignment</h5>
+        </div>
+        <p class="mb-1">
+          Your therapist must assign an exercise routine to your user account.
+          <br />{% if current_user.prog_group %}
+          <span class="fw-bold text-success">Current status: Completed</span>
+          {% else %}
+          <span class="fw-bold text-danger">Current status: Pending</span>
+          {% endif %}
+        </p>
+      </div>
+      <div class="list-group-item py-3">
+        <div class="w-100">
+          <h5 class="mb-1">Visit the game page to play</h5>
+        </div>
+        <p class="mb-1">
+          Click the Game link in the navigation bar above or the button below:
+        </p>
+        <a
+          class="btn btn-primary w-25"
+          href="{{ url_for('game.index') }}"
+          role="button"
+          >Go to Game</a
+        >
+      </div>
+    </div>
+    {% else %}
+    <div class="list-group">
+      <div class="list-group-item py-3">
+        <div class="w-100">
+          <h5 class="mb-1">Wait for your patients to register</h5>
+        </div>
+        <p class="mb-1">
+          Your patients must create a user account and submit your username
+          during registration.
+        </p>
+      </div>
+      <div class="list-group-item py-3">
+        <div class="w-100">
+          <h5 class="mb-1">Assign routines to your patients</h5>
+        </div>
+        <p class="mb-1">
+          You must assign an exercise routine to each of your patients using the
+          following pages.
+          <br />
+          <a href="{{ url_for('med.routines') }}">Routines page</a>: Inspect all
+          your exercise routines or create a new one as well as your first one.
+          <br />
+          <a href="{{ url_for('med.patients') }}">Patients page</a>: Check which
+          patients are not linked with a routine and charge them with one.
+          <br />{% if pending|int == 0 %}
+          <span class="fw-bold text-success"
+            >Pending assignments: None (0)</span
+          >
+          {% else %}
+          <span class="fw-bold text-danger"
+            >Pending assignments: {{ pending }}</span
+          >
+          {% endif %}
+        </p>
+      </div>
+      <div class="list-group-item py-3">
+        <div class="w-100">
+          <h5 class="mb-1">Review the sessions of your patients</h5>
+        </div>
+        <p class="mb-1">
+          Through the
+          <a href="{{ url_for('med.patients') }}">Patients page</a> you can
+          examine reports for each game session of your patients.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="my-3">
+    <h4>You need a user account to proceed:</h4>
+
+    <a
+      class="btn btn-primary btn-lg mx-1 w-25"
+      href="{{ url_for('home.register') }}"
+      role="button"
+      >Create account</a
+    >
+    <a
+      class="btn btn-primary btn-lg mx-1 w-25"
+      href="{{ url_for('home.login') }}"
+      role="button"
+      >Log in</a
+    >
+  </div>
+  {% endif %}
 </div>
+
 {% endblock %}

@@ -9,27 +9,20 @@ med_bp = Blueprint('med', __name__, static_folder='static',
                    template_folder='templates', url_prefix='/med')
 
 
-@med_bp.route("/")
-@login_required
-def index():
-    if not Professional.query.filter_by(username=current_user.username).first():
-        abort(403)
-    return render_template('med/index.html')
-
-
 @med_bp.route("/patients")
 @login_required
 def patients():
     if not Professional.query.filter_by(username=current_user.username).first():
         abort(403)
-    if (request.args.get('page') is None):
-        page = 1
-    else:
-        page = request.args.get('page', 1, type=int)
-    patients = Patient.query.filter_by(pro_id=current_user.id).order_by(
-        Patient.username.asc()).paginate(page=page, per_page=10)
+    patients = Patient.query.filter_by(
+        pro_id=current_user.id).order_by(Patient.username.asc()).all()
     tot_days = []
-    for p in patients.items:
+    pivot = 0
+    for i in range(len(patients)):
+        if patients[i].prog_group is None:
+            patients.insert(pivot, patients.pop(i))
+            pivot += 1
+    for p in patients:
         tot_days.append(Program.query.filter_by(
             prog_group=p.prog_group).count())
     return render_template('med/patients.html', patients=patients, tot_days=tot_days)
@@ -81,6 +74,10 @@ def assign():
         username=current_user.username).first()
     if not professional:
         abort(403)
+    if len(Program.query.filter_by(pro_id=current_user.id).all()) == 0:
+        flash(
+            [f'No routines found to be assigned. First create one.'], category='danger')
+        return redirect(url_for('med.create'))
     if request.method == 'POST':
         patient = Patient.query.filter_by(
             username=request.form['username']).first()
@@ -117,7 +114,17 @@ def details(id):
         abort(404)
     if programs[0].pro_id != professional.id:
         abort(403)
-    return render_template('med/details.html', programs=programs)
+    pivot = 1
+    day = 0
+    week_day = []
+    for p in programs:
+        if pivot == p.week_no:
+            day += 1
+        else:
+            day = 1
+        week_day.append(day)
+        pivot = p.week_no
+    return render_template('med/details.html', programs=programs, week_day=week_day)
 
 
 @med_bp.route("/routines/new", methods=("GET", "POST"))
@@ -128,59 +135,38 @@ def create():
     form = ProgramForm(request.form)
     if request.method == 'POST':
         if form.validate_on_submit():
-            i = 1
+            idx = 1
             prog_group = Program.query.order_by(
                 Program.prog_group.desc()).first().prog_group + 1
-            error = None
             for w in range(1, 5):
                 for d in range(1, 8):
-                    program = Program(week_no=w, day_no=i, pro_id=Professional.query.filter_by(
-                        username=current_user.username).first().id)
-                    error = (form['wvi_'+str(w)+str(d)].data == '' or form['wvo_'+str(w)+str(d)].data == '' or form['fst_'+str(w)+str(d)].data ==
-                             '' or form['fsd_'+str(w)+str(d)].data == '' or form['dtp_'+str(w)+str(d)].data == '' or form['rst_'+str(w)+str(d)].data == '')
-                    if error:
+                    if not (w == 1 and d == 1) and (form['skip_'+str(w)+str(d)].data == True):
                         continue
-                    program.wvi_sets = form['wvi_' +
-                                            str(w)+str(d)].data.split()[0]
-                    program.wvi_reps = form['wvi_' +
-                                            str(w)+str(d)].data.split()[1]
-                    program.wvi_dur = form['wvi_' +
-                                           str(w)+str(d)].data.split()[2]
-                    program.wvo_sets = form['wvo_' +
-                                            str(w)+str(d)].data.split()[0]
-                    program.wvo_reps = form['wvo_' +
-                                            str(w)+str(d)].data.split()[1]
-                    program.wvo_dur = form['wvo_' +
-                                           str(w)+str(d)].data.split()[2]
-                    program.fst_sets = form['fst_' +
-                                            str(w)+str(d)].data.split()[0]
-                    program.fst_reps = form['fst_' +
-                                            str(w)+str(d)].data.split()[1]
-                    program.fst_dur = form['fst_' +
-                                           str(w)+str(d)].data.split()[2]
-                    program.dtp_sets = form['dtp_' +
-                                            str(w)+str(d)].data.split()[0]
-                    program.dtp_reps = form['dtp_' +
-                                            str(w)+str(d)].data.split()[1]
-                    program.dtp_dur = form['dtp_' +
-                                           str(w)+str(d)].data.split()[2]
-                    program.fsd_sets = form['fsd_' +
-                                            str(w)+str(d)].data.split()[0]
-                    program.fsd_reps = form['fsd_' +
-                                            str(w)+str(d)].data.split()[1]
-                    program.fsd_dur = form['fsd_' +
-                                           str(w)+str(d)].data.split()[2]
-                    program.rest_sets = form['rst_' +
-                                             str(w)+str(d)].data.split()[0]
-                    program.rest_reps = form['rst_' +
-                                             str(w)+str(d)].data.split()[1]
+                    program = Program(week_no=w, day_no=idx, pro_id=Professional.query.filter_by(
+                        username=current_user.username).first().id)
+                    program.wvi_sets = form['wvis_'+str(w)+str(d)].data
+                    program.wvi_reps = form['wvir_'+str(w)+str(d)].data
+                    program.wvi_dur = form['wvid_'+str(w)+str(d)].data
+                    program.wvo_sets = form['wvos_'+str(w)+str(d)].data
+                    program.wvo_reps = form['wvor_'+str(w)+str(d)].data
+                    program.wvo_dur = form['wvod_'+str(w)+str(d)].data
+                    program.fst_sets = form['fsts_'+str(w)+str(d)].data
+                    program.fst_reps = form['fstr_'+str(w)+str(d)].data
+                    program.fst_dur = form['fstd_'+str(w)+str(d)].data
+                    program.dtp_sets = form['dtps_'+str(w)+str(d)].data
+                    program.dtp_reps = form['dtpr_'+str(w)+str(d)].data
+                    program.dtp_dur = form['dtpd_'+str(w)+str(d)].data
+                    program.fsd_sets = form['fsds_'+str(w)+str(d)].data
+                    program.fsd_reps = form['fsdr_'+str(w)+str(d)].data
+                    program.fsd_dur = form['fsdd_'+str(w)+str(d)].data
+                    program.rest_sets = form['rbts_'+str(w)+str(d)].data
+                    program.rest_reps = form['rbtr_'+str(w)+str(d)].data
                     program.prog_group = prog_group
-                    i += 1
+                    idx += 1
                     db.session.add(program)
             db.session.commit()
-            if not error:
-                flash(
-                    [f'Thanks for submitting a new routine. Its ID is {prog_group}.'], category='success')
+            flash(
+                [f'Thanks for submitting a new routine. Its ID is {prog_group}.'], category='success')
             return redirect(url_for('med.routines'))
 
         for error in form.errors.values():

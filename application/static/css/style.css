@@ -1,8 +1,16 @@
-.list-group-item:hover {
-  background-color: #0d6efd;
-  color: white;
+body {
+  min-height: 100vh;
+  background-image: url("../images/background.png");
+  background-position: center;
+  background-size: cover;
 }
 
-.badge:hover {
-  color: black;
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
 }
