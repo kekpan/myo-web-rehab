@@ -8,28 +8,13 @@ content %}
   <h1 class="text-uppercase my-3 text-center">Assign routine</h1>
 
   <form method="post">
+    {{ form.hidden_tag() }}
     <div class="mb-3">
-      <label for="username">Username</label>
-      <input
-        class="form-control"
-        id="username"
-        name="username"
-        required=""
-        type="text"
-        value="{{username}}"
-      />
+      {{ form.username.label }} {{ form.username(class="form-control",
+      value=username) }}
     </div>
     <div class="mb-3">
-      <label for="program">Choose a routine:</label>
-      <select class="form-select" name="program" id="program" required>
-        <option value="">--Please choose an option--</option>
-        {% for key, value in programs_dict.items() %}
-
-        <option value="{{ key }}">
-          Routine {{ key }} ({{ value[-1].day_no }} days)
-        </option>
-        {% endfor %}
-      </select>
+      {{ form.routine.label }} {{ form.routine(class="form-select") }}
     </div>
     <div class="my-4 mx-auto">
       <input type="submit" class="btn btn-primary" value="Submit" />

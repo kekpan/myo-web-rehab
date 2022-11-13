@@ -2,7 +2,7 @@ import functools
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 
 from application.forms import LoginForm, RegistrationForm
 from application.models import Patient, Professional, db
@@ -39,22 +39,16 @@ def login():
     form = LoginForm(request.form)
     if request.method == 'POST':
         if form.validate_on_submit():
-            error = None
             user = Patient.query.filter_by(username=form.username.data).first(
             ) or Professional.query.filter_by(username=form.username.data).first()
 
-            if user is None:
-                error = [f'User "{form.username.data}" does not exist.']
-            elif not check_password_hash(user.password, form.password.data):
-                error = ['Invalid password.']
+            login_user(user, remember=True)
+            flash(
+                [f'You were successfully logged in, {user.username}.'], category='success')
+            return redirect(url_for('home.index'))
 
-            if error is None:
-                login_user(user, remember=True)
-                flash(
-                    [f'You were successfully logged in, {user.username}.'], category='success')
-                return redirect(url_for('home.index'))
-
-        flash(error, category='danger')
+        for error in form.errors.values():
+            flash(error, category='danger')
 
     return render_template('login.html', form=form)
 

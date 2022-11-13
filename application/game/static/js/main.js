@@ -1,19 +1,7 @@
 import { sounds as Sound } from "./sound.js";
 // import * as PIXI from "./pixi.js";
 
-const canvas = document.getElementById("canvas");
-const app = new PIXI.Application({ width: 1024, height: 576, view: canvas });
-
-let loadingCtr, loadingTextObj;
-createLoadingScreen();
-let state = loadingState;
-
-let [prevTs, tsDiff] = [0];
-requestAnimationFrame(gameLoop);
-
-let idb, idbSesId;
-initializeIdb();
-
+let app, loadingCtr, loadingTextObj, state, tsDiff, idb, idbSesId, data;
 let overworldCtr, pauseCtr, levelCtr, endingCtr, rhombiCtr;
 let pauseHeading, pauseBody, endingInfo, wavesInfoUpper, wavesInfoLower;
 let myoSprite, myoBar, myoBarBgd, healthBar, healthBarBgd, charge;
@@ -21,7 +9,7 @@ let playerChar, warpAnimation, shield, gem, bonusBar, bonusBarBgd;
 let donutMask, wavesInfoRects, nextWaveRhombi;
 let mainSheet, lvlSheet, music, enemyWaves;
 let timeoutID, keyPressed, playing, startTs, tZero, totalWaves, restTimeoutID;
-let [repCounter, bonusTimer] = [0, 0];
+let [prevTs, repCounter, bonusTimer] = [0, 0, 0];
 let [attacks, enemies, bursts, freePositions, target] = [{}, {}, {}, [], {}];
 let tempGraphics;
 const exercises = [
@@ -46,11 +34,22 @@ const colors = {
 };
 const bypassMyo = true;
 
-let data;
-
 // const totSetsToDo = [...Object.values(data.setsToDo)].reduce((a, b) => a + b);
 
-let username = "chou";
+document.getElementById("button").onclick = function bootUp() {
+  document.getElementById("container").remove();
+
+  const canvas = document.getElementById("canvas");
+  app = new PIXI.Application({ width: 1024, height: 576, view: canvas });
+
+  createLoadingScreen();
+  state = loadingState;
+  requestAnimationFrame(gameLoop);
+
+  initializeIdb();
+};
+
+let username = document.getElementById("username").innerText;
 function fetchUserData() {
   fetch(`http://127.0.0.1:5000/api/programs/${username}`)
     .then((response) => response.json())
@@ -190,10 +189,9 @@ function gameSetup(_, resources) {
 
   music = Sound["static/sounds/overworld.mp3"];
   music.loop = true;
-  music.volume = 0.25;
+  music.volume = 0.1;
 
   partitionSetsInWaves();
-  // console.log(enemyWaves);
   calculateBonusDuration();
 
   createPlayerChar();
@@ -1030,8 +1028,10 @@ function keyDownListener(event) {
       transitionToLevel();
     } else if (state === playState) {
       state = mainPauseState;
+      music.pause();
     } else if (state === mainPauseState) {
       state = playState;
+      music.play();
     }
   }
 
@@ -1108,7 +1108,7 @@ function transitionToLevel() {
     music.pause();
     music = Sound[`static/sounds/lvl_${data.curtLvl}.mp3`];
     music.loop = true;
-    music.volume = 0.25;
+    music.volume = 0.1;
     music.play();
   }, 600);
 }
@@ -1144,7 +1144,7 @@ function myoStatusListener(event) {
   ];
 
   if (event.type === "battery_level") {
-    console.log(Myo.myos[0].batteryLevel);
+    // console.log(Myo.myos[0].batteryLevel);
   } else if (myoStatusEvents.includes(event.type)) {
     state = myoPauseState;
   }

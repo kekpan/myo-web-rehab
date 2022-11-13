@@ -1,9 +1,9 @@
-from application.models import Patient, Professional, Program, Session, db
 from flask import (Blueprint, abort, flash, redirect, render_template, request,
                    url_for)
 from flask_login import current_user, login_required
 
-from .forms import ProgramForm
+from application.med.forms import AssignForm, ProgramForm
+from application.models import Patient, Professional, Program, Session, db
 
 med_bp = Blueprint('med', __name__, static_folder='static',
                    template_folder='templates', url_prefix='/med')
@@ -78,15 +78,8 @@ def assign():
         flash(
             [f'No routines found to be assigned. First create one.'], category='danger')
         return redirect(url_for('med.create'))
-    if request.method == 'POST':
-        patient = Patient.query.filter_by(
-            username=request.form['username']).first()
-        patient.prog_group = request.form['program']
-        db.session.add(patient)
-        db.session.commit()
-        flash(
-            [f'Routine successfully assigned to {patient.username}.'], category='success')
-        return redirect(url_for('med.patients'))
+
+    form = AssignForm(request.form)
     programs = Program.query.filter_by(
         pro_id=professional.id).order_by(Program.day_no.asc()).all()
     programs_dict = {}
@@ -95,11 +88,29 @@ def assign():
             programs_dict[p.prog_group].append(p)
         else:
             programs_dict[p.prog_group] = [p]
+    form.routine.choices = [(key, f'Routine {key} ({value[-1].day_no} days)')
+                            for key, value in programs_dict.items()]
+
     if (request.args.get('user') is None):
         username = ""
     else:
         username = request.args.get('user')
-    return render_template('med/assign.html', programs_dict=programs_dict, username=username)
+
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            patient = Patient.query.filter_by(
+                username=form.username.data).first()
+            patient.prog_group = form.routine.data
+            db.session.add(patient)
+            db.session.commit()
+            flash(
+                [f'Routine successfully assigned to {patient.username}.'], category='success')
+            return redirect(url_for('med.patients'))
+
+        for error in form.errors.values():
+            flash(error, category='danger')
+
+    return render_template('med/assign.html', form=form, programs_dict=programs_dict, username=username)
 
 
 @med_bp.route("/routines/<int:id>")

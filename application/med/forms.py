@@ -1,7 +1,27 @@
 from types import NoneType
+
+from flask_login import current_user
 from flask_wtf import FlaskForm
-from wtforms import IntegerField, BooleanField
-from wtforms.validators import Optional, InputRequired, ValidationError, NumberRange
+from wtforms import BooleanField, IntegerField, SelectField, StringField
+from wtforms.validators import (InputRequired, NumberRange, Optional,
+                                ValidationError)
+
+from application.models import Patient
+
+
+class AssignForm(FlaskForm):
+    username = StringField('Username', [InputRequired()])
+
+    def validate_username(form, field):
+        patient = Patient.query.filter_by(username=form.username.data).first()
+        if patient is None:
+            raise ValidationError(
+                f'User "{form.username.data}" does not exist.')
+        elif patient.pro_id != current_user.id:
+            raise ValidationError(
+                f'You have no permission for user "{patient.username}"')
+
+    routine = SelectField('Choose a Routine')
 
 
 class ProgramForm(FlaskForm):

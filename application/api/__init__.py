@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from application.models import Patient, Program, Session, db
 from flask import Blueprint, jsonify, request
 from flask.views import MethodView
+
+from application.models import Patient, Program, Session, db
 
 api_bp = Blueprint('api', __name__, static_folder='static',
                    template_folder='templates', url_prefix='/api')

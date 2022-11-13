@@ -1,4 +1,5 @@
 from flask_wtf import FlaskForm
+from werkzeug.security import check_password_hash
 from wtforms import PasswordField, RadioField, StringField
 from wtforms.validators import (Email, EqualTo, InputRequired, Length,
                                 ValidationError)
@@ -45,5 +46,16 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
+    def validate_login(form, field):
+        user = Patient.query.filter_by(username=form.username.data).first(
+        ) or Professional.query.filter_by(username=form.username.data).first()
+
+        if user is None:
+            raise ValidationError(
+                f'User "{form.username.data}" does not exist.')
+        elif not check_password_hash(user.password, form.password.data):
+            raise ValidationError('Invalid password.')
+
     username = StringField('Username', [InputRequired()])
-    password = PasswordField('Password', [InputRequired()])
+
+    password = PasswordField('Password', [InputRequired(), validate_login])
