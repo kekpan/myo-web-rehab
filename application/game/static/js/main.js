@@ -1,16 +1,32 @@
 import { sounds as Sound } from "./sound.js";
 // import * as PIXI from "./pixi.js";
 
-let app, loadingCtr, loadingTextObj, state, tsDiff, idb, idbSesId, data;
-let overworldCtr, pauseCtr, levelCtr, endingCtr, rhombiCtr;
-let pauseHeading, pauseBody, endingInfo, wavesInfoUpper, wavesInfoLower;
-let myoSprite, myoBar, myoBarBgd, healthBar, healthBarBgd, charge;
-let playerChar, warpAnimation, shield, gem, bonusBar, bonusBarBgd;
-let donutMask, wavesInfoRects, nextWaveRhombi;
-let mainSheet, lvlSheet, music, enemyWaves;
-let timeoutID, keyPressed, playing, startTs, tZero, totalWaves, restTimeoutID;
-let [prevTs, repCounter, bonusTimer] = [0, 0, 0];
-let [attacks, enemies, bursts, freePositions, target] = [{}, {}, {}, [], {}];
+// PIXI.AnimatedSprite objects
+let charge, playerChar, shield, warpAnimation;
+let [attacks, bursts, enemies] = [{}, {}, {}];
+// PIXI.Container objects
+let endingCtr, levelCtr, loadingCtr, overworldCtr, pauseCtr, rhombiCtr;
+// PIXI.Graphics objects
+let bonusBar, bonusBarBgd, healthBar, healthBarBgd, myoBar, myoBarBgd;
+let donutMask, nextWaveRhombi, wavesInfoRects;
+// PIXI.Sprite objects
+let gem, myoSprite;
+// PIXI.Text objects
+let pauseBody, pauseHeading, wavesInfoLower, wavesInfoUpper;
+let loadingTextObj, endingInfo;
+
+// Other pre-setup variables
+let app, data, evtSource, idb, idbSesId, state;
+// Other gameplay-related variables
+let assets, keyPressed, lvlSheet, mainSheet, music, playing;
+let freePositions = [];
+// Other time-related variables
+let restTimeoutID, startTs, timeoutID, tsDiff, tZero;
+let [bonusTimer, prevTs] = [0, 0];
+// Other exercise-related variables
+let enemyWaves, totalWaves;
+let [repCounter, target] = [0, {}];
+
 let tempGraphics;
 const exercises = [
   "fingers_spread",
@@ -66,14 +82,13 @@ function fetchUserData() {
     });
 }
 
-Sound.whenLoaded = () => {
-  PIXI.Loader.shared.baseUrl = "static/images/";
-  PIXI.Loader.shared.add([
-    "main.json",
-    `wld_${data.curtWld}.png`,
-    `lvl_${data.curtLvl}.json`,
+Sound.whenLoaded = async () => {
+  assets = await PIXI.Assets.load([
+    "static/images/main.json",
+    `static/images/wld_${data.curtWld}.png`,
+    `static/images/lvl_${data.curtLvl}.json`,
   ]);
-  PIXI.Loader.shared.load(gameSetup);
+  gameSetup();
 };
 
 function initializeIdb() {
@@ -183,9 +198,9 @@ YOU MAY NOW CLOSE THE WINDOW.`;
   };
 }
 
-function gameSetup(_, resources) {
-  mainSheet = resources["main.json"].spritesheet;
-  lvlSheet = resources[`lvl_${data.curtLvl}.json`].spritesheet;
+function gameSetup() {
+  mainSheet = assets["static/images/main.json"];
+  lvlSheet = assets[`static/images/lvl_${data.curtLvl}.json`];
 
   music = Sound["static/sounds/overworld.mp3"];
   music.loop = true;
@@ -219,6 +234,7 @@ function gameSetup(_, resources) {
   endingCtr.addChild(endingInfo);
 
   keyboardListenersSetup();
+  evtSource = new EventSource("http://127.0.0.1:8080/");
   myoListenersSetup();
 
   Myo.connect();
@@ -326,7 +342,7 @@ function overworldSetup() {
   app.stage.addChild(overworldCtr);
 
   const background = new PIXI.Sprite(
-    PIXI.Loader.shared.resources[`wld_${data.curtWld}.png`].texture
+    assets[`static/images/wld_${data.curtWld}.png`]
   );
   overworldCtr.addChild(background);
 
@@ -1130,8 +1146,8 @@ function myoListenersSetup() {
   Myo.on("status", myoStatusListener);
   Myo.onError = myoConnectionListener;
   Myo.on("ready", myoConnectionListener);
-  Myo.on("pose", myoPoseOnListener);
-  Myo.on("pose_off", myoPoseOffListener);
+  evtSource.addEventListener("pose", myoPoseOnListener);
+  evtSource.addEventListener("pose_off", myoPoseOffListener);
 }
 
 function myoStatusListener(event) {
@@ -1158,7 +1174,8 @@ function myoConnectionListener(event) {
   music.play();
 }
 
-function myoPoseOnListener(ex) {
+function myoPoseOnListener(event) {
+  let ex = event.data;
   // keyPressed = "MYO";
   if (
     !target.exercise ||
@@ -1245,8 +1262,9 @@ function updateFreePositions() {
   findFreePositions(grid, enemyWaves[0].size);
 }
 
-function myoPoseOffListener(ex) {
+function myoPoseOffListener(event) {
   // keyPressed = undefined;
+  let ex = event.data;
   myoSprite.isIdle = true;
 
   if (playerChar.textures[0].textureCacheIds[0].includes("east")) {
