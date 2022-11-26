@@ -1,4 +1,4 @@
-venv/
+.venv/
 
 *.pyc
 __pycache__/
@@ -6,7 +6,6 @@ __pycache__/
 instance/
 
 application/game/static/images/
-application/game/static/js/old/
 application/game/static/js/myo.js
 application/game/static/js/pixi.js
 application/game/static/js/pixi.min.js
@@ -16,5 +15,8 @@ application/game/static/sounds
 application/static/downloads/
 application/static/icons/
 application/static/images/
+
+db_helper_script.py
+requirements.txt
 
 .vscode/

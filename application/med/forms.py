@@ -3,43 +3,61 @@ from types import NoneType
 from flask_login import current_user
 from flask_wtf import FlaskForm
 from wtforms import BooleanField, IntegerField, SelectField, StringField
-from wtforms.validators import (InputRequired, NumberRange, Optional,
-                                ValidationError)
+from wtforms.validators import InputRequired, NumberRange, Optional, ValidationError
 
 from application.models import Patient
 
 
 class AssignForm(FlaskForm):
-    username = StringField('Username', [InputRequired()])
+    username = StringField("Username", [InputRequired()])
 
     def validate_username(form, field):
         patient = Patient.query.filter_by(username=form.username.data).first()
         if patient is None:
-            raise ValidationError(
-                f'User "{form.username.data}" does not exist.')
+            raise ValidationError(f'User "{form.username.data}" does not exist.')
         elif patient.pro_id != current_user.id:
             raise ValidationError(
-                f'You have no permission for user "{patient.username}"')
+                f'You have no permission for user "{patient.username}"'
+            )
 
-    routine = SelectField('Choose a Routine')
+    routine = SelectField("Choose a Routine")
 
 
 class ProgramForm(FlaskForm):
     def validate_group(form, field):
-        w = field.name.split('_')[1][0]
-        d = field.name.split('_')[1][1]
-        inputs = ['wvis_', 'wvir_', 'wvid_', 'wvos_', 'wvor_', 'wvod_', 'fsts_', 'fstr_',
-                  'fstd_', 'fsds_', 'fsdr_', 'fsdd_', 'dtps_', 'dtpr_', 'dtpd_', 'rbts_', 'rbtr_']
-        if form['skip_'+str(w)+str(d)].data == False:
+        w = field.name.split("_")[1][0]
+        d = field.name.split("_")[1][1]
+        inputs = [
+            "wvis_",
+            "wvir_",
+            "wvid_",
+            "wvos_",
+            "wvor_",
+            "wvod_",
+            "fsts_",
+            "fstr_",
+            "fstd_",
+            "fsds_",
+            "fsdr_",
+            "fsdd_",
+            "dtps_",
+            "dtpr_",
+            "dtpd_",
+            "rbts_",
+            "rbtr_",
+        ]
+        if form["skip_" + str(w) + str(d)].data == False:
             for inp in inputs:
-                if type(form[inp+str(w)+str(d)].data) == NoneType:
+                if type(form[inp + str(w) + str(d)].data) == NoneType:
                     raise ValidationError(
-                        f'Day {w}-{d} requires some additional values.')
+                        f"Day {w}-{d} requires some additional values."
+                    )
         else:
             for inp in inputs:
-                if type(form[inp+str(w)+str(d)].data) != NoneType:
+                if type(form[inp + str(w) + str(d)].data) != NoneType:
                     raise ValidationError(
-                        f'Day {w}-{d} is to be skipped but contains values.')
+                        f"Day {w}-{d} is to be skipped but contains values."
+                    )
 
     wvis_11 = IntegerField(validators=[NumberRange(min=0), InputRequired()])
     wvir_11 = IntegerField(validators=[NumberRange(min=0), InputRequired()])

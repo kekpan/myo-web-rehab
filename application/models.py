@@ -7,34 +7,31 @@ db = SQLAlchemy()
 class Patient(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     days_done = db.Column(db.Integer)
     prog_group = db.Column(db.Integer)
-    pro_id = db.Column(db.Integer, db.ForeignKey(
-        'professional.id'), nullable=False)
-    sessions = db.relationship('Session', backref='patient')
+    pro_id = db.Column(db.Integer, db.ForeignKey("professional.id"), nullable=False)
+    sessions = db.relationship("Session", backref="patient")
 
     def get_id(self):
         return self.username
 
     def __repr__(self):
-        return '<Patient %r>' % self.username
+        return "<Patient %r>" % self.username
 
 
 class Professional(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
-    patients = db.relationship('Patient', backref='professional')
-    programs = db.relationship('Program', backref='professional')
+    patients = db.relationship("Patient", backref="professional")
+    programs = db.relationship("Program", backref="professional")
 
     def get_id(self):
         return self.username
 
     def __repr__(self):
-        return '<Professional %r>' % self.username
+        return "<Professional %r>" % self.username
 
 
 class Program(db.Model):
@@ -59,12 +56,11 @@ class Program(db.Model):
     fsd_dur = db.Column(db.Integer)
     rest_sets = db.Column(db.Integer)
     rest_reps = db.Column(db.Integer)
-    pro_id = db.Column(db.Integer, db.ForeignKey(
-        'professional.id'), nullable=False)
-    sessions = db.relationship('Session', backref='program')
+    pro_id = db.Column(db.Integer, db.ForeignKey("professional.id"), nullable=False)
+    sessions = db.relationship("Session", backref="program")
 
     def __repr__(self):
-        return '<Program %r>' % self.id
+        return "<Program %r>" % self.id
 
 
 class Session(db.Model):
@@ -78,10 +74,8 @@ class Session(db.Model):
     dtp_sets = db.Column(db.Integer)
     fsd_sets = db.Column(db.Integer)
     issue = db.Column(db.String)
-    pt_id = db.Column(db.Integer, db.ForeignKey(
-        'patient.id'), nullable=False)
-    prog_id = db.Column(db.Integer, db.ForeignKey(
-        'program.id'), nullable=False)
+    pt_id = db.Column(db.Integer, db.ForeignKey("patient.id"), nullable=False)
+    prog_id = db.Column(db.Integer, db.ForeignKey("program.id"), nullable=False)
 
     def __repr__(self):
-        return '<Session %r>' % self.id
+        return "<Session %r>" % self.id

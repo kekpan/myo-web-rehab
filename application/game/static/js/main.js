@@ -65,8 +65,7 @@ document.getElementById("button").onclick = function bootUp() {
   initializeIdb();
 };
 
-let username = document.getElementById("username").innerText;
-function fetchUserData() {
+function fetchUserData(username) {
   fetch(`http://127.0.0.1:5000/api/programs/${username}`)
     .then((response) => response.json())
     .then((resJson) => {
@@ -103,7 +102,7 @@ function initializeIdb() {
   };
   request.onsuccess = (event) => {
     idb = event.target.result;
-    fetchUserData();
+    fetchUserData(document.getElementById("username").innerText);
   };
   request.onupgradeneeded = (event) => {
     const idb = event.target.result;
