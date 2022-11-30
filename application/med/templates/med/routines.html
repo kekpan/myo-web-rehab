@@ -19,7 +19,7 @@ content %}
   <table class="table table-light table-hover border border-3">
     <thead>
       <tr>
-        <th scope="col">Routine ID</th>
+        <th scope="col">Routine Title</th>
         <th scope="col"># of weeks</th>
         <th scope="col"># of days</th>
         <th scope="col">Options</th>
@@ -28,7 +28,7 @@ content %}
     <tbody>
       {% for key, value in programs_dict.items() %}
       <tr>
-        <td width="25%">{{ key }}</td>
+        <td width="25%">{{ value[0].title }}</td>
         <td width="25%">{{ value[-1].week_no }}</td>
         <td width="25%">{{ value[-1].day_no }}</td>
         <td width="25%">

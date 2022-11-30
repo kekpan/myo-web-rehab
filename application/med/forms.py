@@ -52,13 +52,8 @@ class ProgramForm(FlaskForm):
                     raise ValidationError(
                         f"Day {w}-{d} requires some additional values."
                     )
-        else:
-            for inp in inputs:
-                if type(form[inp + str(w) + str(d)].data) != NoneType:
-                    raise ValidationError(
-                        f"Day {w}-{d} is to be skipped but contains values."
-                    )
 
+    prog_title = StringField("Routine Title", [InputRequired()])
     wvis_11 = IntegerField(validators=[NumberRange(min=0), InputRequired()])
     wvir_11 = IntegerField(validators=[NumberRange(min=0), InputRequired()])
     wvid_11 = IntegerField(validators=[NumberRange(min=0), InputRequired()])

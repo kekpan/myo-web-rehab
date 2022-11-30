@@ -1,4 +1,4 @@
-{% extends "base.html" %} {% block title %}Routine {{programs[0].prog_group}}{%
+{% extends "base.html" %} {% block title %}Routine {{programs[0].title}}{%
 endblock %} {% block content %}
 
 <div
@@ -23,7 +23,7 @@ endblock %} {% block content %}
             <thead>
               <tr>
                 <th scope="row" width="50%">Week-Day</th>
-                <th width="50%">{{p.week_no}}-{{week_day[loop.index-1]}}</th>
+                <th width="50%">{{p.week_no}}-{{p.day_week}}</th>
               </tr>
               <tr>
                 <th scope="row" width="50%">Overall Day</th>

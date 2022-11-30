@@ -170,6 +170,7 @@ def create():
     if not Professional.query.filter_by(username=current_user.username).first():
         abort(403)
     form = ProgramForm(request.form)
+    errors_found = False
     if request.method == "POST":
         if form.validate_on_submit():
             idx = 1
@@ -185,6 +186,7 @@ def create():
                     program = Program(
                         week_no=w,
                         day_no=idx,
+                        day_week=d,
                         pro_id=Professional.query.filter_by(
                             username=current_user.username
                         )
@@ -208,17 +210,19 @@ def create():
                     program.fsd_dur = form["fsdd_" + str(w) + str(d)].data
                     program.rest_sets = form["rbts_" + str(w) + str(d)].data
                     program.rest_reps = form["rbtr_" + str(w) + str(d)].data
+                    program.title = form["prog_title"].data
                     program.prog_group = prog_group
                     idx += 1
                     db.session.add(program)
             db.session.commit()
             flash(
-                [f"Thanks for submitting a new routine. Its ID is {prog_group}."],
+                [f"Thanks for submitting a new routine. Its title is {program.title}."],
                 category="success",
             )
             return redirect(url_for("med.routines"))
 
         for error in form.errors.values():
+            errors_found = True
             flash(error, category="danger")
 
-    return render_template("med/create.html", form=form)
+    return render_template("med/create.html", form=form, errors_found=errors_found)

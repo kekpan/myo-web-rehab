@@ -10,6 +10,7 @@ class Patient(db.Model, UserMixin):
     password = db.Column(db.String(255), nullable=False)
     days_done = db.Column(db.Integer)
     prog_group = db.Column(db.Integer)
+    start_date = db.Column(db.DateTime)
     pro_id = db.Column(db.Integer, db.ForeignKey("professional.id"), nullable=False)
     sessions = db.relationship("Session", backref="patient")
 
@@ -36,9 +37,11 @@ class Professional(db.Model, UserMixin):
 
 class Program(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(80))
     prog_group = db.Column(db.Integer)
     week_no = db.Column(db.Integer)
     day_no = db.Column(db.Integer)
+    day_week = db.Column(db.Integer)
     wvi_sets = db.Column(db.Integer)
     wvi_reps = db.Column(db.Integer)
     wvi_dur = db.Column(db.Integer)
