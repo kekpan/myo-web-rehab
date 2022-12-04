@@ -14,9 +14,10 @@ endblock %} {% block content %}
         <td>{{ patient.username }}</td>
       </tr>
       <tr>
-        <td class="text-end w-50"><strong>Routine ID</strong></td>
+        <td class="text-end w-50"><strong>Routine Title</strong></td>
         <td>
-          {{ patient.prog_group }} {% if patient.prog_group %}
+          {% if programs[0] %}{{ programs[0].title }}{% else %}N/A{% endif %} {%
+          if patient.prog_group %}
           <a
             class="badge bg-primary text-wrap ms-2"
             style="text-decoration: none"

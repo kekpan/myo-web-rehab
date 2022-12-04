@@ -13,6 +13,13 @@ med_bp = Blueprint(
 )
 
 
+def find_pending():
+    if current_user.is_authenticated and not hasattr(current_user, "pro_id"):
+        return Patient.query.filter_by(pro_id=current_user.id, prog_group=None).count()
+    else:
+        return 0
+
+
 @med_bp.route("/patients")
 @login_required
 def patients():
@@ -24,6 +31,7 @@ def patients():
         .all()
     )
     tot_days = []
+    routine_titles = []
     pivot = 0
     for i in range(len(patients)):
         if patients[i].prog_group is None:
@@ -31,7 +39,19 @@ def patients():
             pivot += 1
     for p in patients:
         tot_days.append(Program.query.filter_by(prog_group=p.prog_group).count())
-    return render_template("med/patients.html", patients=patients, tot_days=tot_days)
+        if p.prog_group is None:
+            routine_titles.append("N/A")
+        else:
+            routine_titles.append(
+                Program.query.filter_by(prog_group=p.prog_group).first().title
+            )
+    return render_template(
+        "med/patients.html",
+        patients=patients,
+        tot_days=tot_days,
+        routine_titles=routine_titles,
+        pending=find_pending(),
+    )
 
 
 @med_bp.route("/patients/<username>")
@@ -63,6 +83,7 @@ def profile(username):
         tot_days=tot_days,
         sessions=sessions,
         programs=programs,
+        pending=find_pending(),
     )
 
 
@@ -83,7 +104,9 @@ def routines():
             programs_dict[p.prog_group].append(p)
         else:
             programs_dict[p.prog_group] = [p]
-    return render_template("med/routines.html", programs_dict=programs_dict)
+    return render_template(
+        "med/routines.html", programs_dict=programs_dict, pending=find_pending()
+    )
 
 
 @med_bp.route("/routines/assign", methods=("GET", "POST"))
@@ -111,7 +134,7 @@ def assign():
         else:
             programs_dict[p.prog_group] = [p]
     form.routine.choices = [
-        (key, f"Routine {key} ({value[-1].day_no} days)")
+        (key, f"Routine '{value[0].title}' ({value[-1].day_no} days)")
         for key, value in programs_dict.items()
     ]
 
@@ -136,7 +159,11 @@ def assign():
             flash(error, category="danger")
 
     return render_template(
-        "med/assign.html", form=form, programs_dict=programs_dict, username=username
+        "med/assign.html",
+        form=form,
+        programs_dict=programs_dict,
+        username=username,
+        pending=find_pending(),
     )
 
 
@@ -161,7 +188,9 @@ def details(id):
             day = 1
         week_day.append(day)
         pivot = p.week_no
-    return render_template("med/details.html", programs=programs, week_day=week_day)
+    return render_template(
+        "med/details.html", programs=programs, week_day=week_day, pending=find_pending()
+    )
 
 
 @med_bp.route("/routines/new", methods=("GET", "POST"))
@@ -225,4 +254,6 @@ def create():
             errors_found = True
             flash(error, category="danger")
 
-    return render_template("med/create.html", form=form, errors_found=errors_found)
+    return render_template(
+        "med/create.html", form=form, errors_found=errors_found, pending=find_pending()
+    )

@@ -63,9 +63,13 @@
             </li>
             {% else %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('med.patients') }}"
-                >Patients</a
-              >
+              <a
+                class="nav-link d-flex align-items-center"
+                href="{{ url_for('med.patients') }}"
+                >Patients{% if not pending|int == 0 %}
+                <span class="ms-1 badge text-bg-danger">{{ pending }}</span> {%
+                endif %}
+              </a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('med.routines') }}"

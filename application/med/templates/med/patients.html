@@ -15,7 +15,7 @@ content %}
     <thead>
       <tr>
         <th scope="col">Username</th>
-        <th scope="col">Routine ID</th>
+        <th scope="col">Routine Title</th>
         <th scope="col">Progress</th>
         <th scope="col">Options</th>
       </tr>
@@ -25,9 +25,9 @@ content %}
       <tr>
         <td width="25%">{{ p.username }}</td>
         {% if p.prog_group %}
-        <td width="25%">{{ p.prog_group }}</td>
+        <td width="25%">{{ routine_titles[loop.index-1] }}</td>
         {% else %}
-        <td width="25%">Pending</td>
+        <td width="25%"><strong class="text-danger">Pending</strong></td>
         {% endif %}
         <td width="25%">
           {% if tot_days[loop.index-1] %}{{ (p.days_done * 100 /

@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from flask.views import MethodView
+from flask_login import current_user
 
 from application.models import Patient, Program, Session, db
 
@@ -14,27 +15,66 @@ api_bp = Blueprint(
 )
 
 
+class InvalidAPIUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        super().__init__()
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv["message"] = self.message
+        rv["status"] = self.status_code
+        return rv
+
+
+@api_bp.errorhandler(InvalidAPIUsage)
+def invalid_api_usage(e):
+    return jsonify(e.to_dict()), e.status_code
+
+
 class ProgramAPI(MethodView):
     def get(self, username):
         if username is None:
             return jsonify({"Get all programs": "Coming soon"})
         else:
+            if username != current_user.username:
+                raise InvalidAPIUsage(
+                    "You do not have access rights to other users' programs",
+                    status_code=403,
+                )
             patient = Patient.query.filter_by(username=username).first()
             program = Program.query.filter_by(
                 prog_group=patient.prog_group, day_no=patient.days_done + 1
             ).first()
+            if not program:
+                raise InvalidAPIUsage(
+                    "Your therapist has not assigned you an exercise routine yet.",
+                    status_code=404,
+                )
             totLevels = []
             for week_idx in range(1, 5):
                 num_of_levels = Program.query.filter_by(
                     prog_group=patient.prog_group, week_no=week_idx
                 ).count()
                 totLevels.append(num_of_levels)
+            start_date = (
+                datetime.timestamp(patient.start_date) * 1000
+                if patient.start_date
+                else 0
+            )
             data = {
                 "pt_id": patient.id,
                 "prog_id": program.id,
                 "curtWld": program.week_no,
                 "curtLvl": program.day_no,
                 "totLevels": totLevels,
+                "dayWeek": program.day_week,
+                "startDate": start_date,
                 "setsToDo": {
                     "fingers_spread": program.fsd_sets,
                     "fist": program.fst_sets,
@@ -81,28 +121,11 @@ class SessionAPI(MethodView):
         )
         patient = Patient.query.get(req["pt_id"])
         patient.days_done += 1
+        if not patient.start_date:
+            patient.start_date = start_ts
         db.session.add_all([session, patient])
         db.session.commit()
         return jsonify({"sessionId": session.id})
-
-    # def put(self, ses_id):
-    #     ses = Session.query.get(ses_id)
-    #     match request.json["event"]:
-    #         case 'wave_in':
-    #             ses.wvi_sets += 1
-    #         case 'wave_out':
-    #             ses.wvo_sets += 1
-    #         case 'double_tap':
-    #             ses.dtp_sets += 1
-    #         case 'fingers_spread':
-    #             ses.fsd_sets += 1
-    #         case 'fist':
-    #             ses.fst_sets += 1
-    #         case _:
-    #             ses.end_ts = datetime.fromtimestamp(request.json['end_ts'])
-    #             ses.success = request.json['success']
-    #     db.session.commit()
-    #     return jsonify({'PUT': 'OK'})
 
 
 program_view = ProgramAPI.as_view("program_api")

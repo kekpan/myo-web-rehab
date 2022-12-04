@@ -16,7 +16,7 @@ let pauseBody, pauseHeading, wavesInfoLower, wavesInfoUpper;
 let loadingTextObj, endingInfo;
 
 // Other pre-setup variables
-let app, data, evtSource, idb, idbSesId, state;
+let app, data, evtSource, idb, idbSesId, state, username;
 // Other gameplay-related variables
 let assets, keyPressed, lvlSheet, mainSheet, music, playing;
 let freePositions = [];
@@ -52,7 +52,9 @@ const bypassMyo = true;
 
 // const totSetsToDo = [...Object.values(data.setsToDo)].reduce((a, b) => a + b);
 
-document.getElementById("button").onclick = function bootUp() {
+document.getElementById("button").addEventListener("click", bootUp);
+
+function bootUp() {
   document.getElementById("container").remove();
 
   const canvas = document.getElementById("canvas");
@@ -63,22 +65,101 @@ document.getElementById("button").onclick = function bootUp() {
   requestAnimationFrame(gameLoop);
 
   initializeIdb();
-};
+}
 
 function fetchUserData(username) {
   fetch(`http://127.0.0.1:5000/api/programs/${username}`)
     .then((response) => response.json())
     .then((resJson) => {
+      if (resJson.status == 404) {
+        alert(resJson.message);
+        return;
+      }
       data = resJson;
-      Sound.load([
-        "static/sounds/overworld.mp3",
-        `static/sounds/lvl_${data.curtLvl}.mp3`,
-      ]);
+      syncWithIdb();
     })
     .catch((error) => {
-      alert("Failed to load user data. Please try again later.");
+      alert(
+        "An error ocurred while getting your data. Please try again later."
+      );
       console.error("Error:", error);
     });
+}
+
+function syncWithIdb() {
+  const objectStore = idb.transaction("sessions").objectStore("sessions");
+  const leftoverSessions = [];
+  objectStore.openCursor().onsuccess = (event) => {
+    const cursor = event.target.result;
+    if (cursor) {
+      if (cursor.value.username === username) {
+        cursor.value.ses_id = cursor.key;
+        leftoverSessions.push(cursor.value);
+      }
+      cursor.continue();
+    } else if (leftoverSessions.length !== 0) {
+      leftoverSessions.sort((a, b) => a.prog_id - b.prog_id);
+      leftoverSessions.forEach((ses) => {
+        fetch(`http://127.0.0.1:5000/api/sessions/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(ses),
+        })
+          .then((response) => {
+            if (response.ok) {
+              const sessionObjStore = idb
+                .transaction("sessions", "readwrite")
+                .objectStore("sessions");
+              const deleteRequest = sessionObjStore.delete(ses.ses_id);
+              deleteRequest.onsuccess = () => {
+                fetchUserData(username);
+              };
+            } else {
+              throw new Error(
+                "Something went wrong during the communication with the server. Please try again later."
+              );
+            }
+          })
+          .catch((error) => {
+            alert(error);
+          });
+      });
+    } else {
+      checkEligibility();
+    }
+  };
+}
+
+function checkEligibility() {
+  if (data.curtLvl === 1) {
+    Sound.load([
+      "static/sounds/overworld.mp3",
+      `static/sounds/lvl_${data.curtLvl}.mp3`,
+    ]);
+    return;
+  }
+  const diffMilliseconds = Math.abs(new Date() - new Date(data.startDate));
+  const diffDays = diffMilliseconds / (1000 * 60 * 60 * 24);
+  const daysBtwLevels = (data.curtWld - 1) * 7 + data.dayWeek - 1;
+  if (diffDays > daysBtwLevels - 0.25) {
+    Sound.load([
+      "static/sounds/overworld.mp3",
+      `static/sounds/lvl_${data.curtLvl}.mp3`,
+    ]);
+  } else {
+    const daysRemain = daysBtwLevels - 0.25 - diffDays;
+    const hoursRemain = Math.floor(daysRemain * 24);
+    const minsRemain = Math.ceil((daysRemain * 24 - hoursRemain) * 60);
+    if (minsRemain === 60) {
+      hoursRemain++;
+      minsRemain = 0;
+    }
+    alert(
+      `Not enough time passed since last game. Please come back in ${hoursRemain} hours and ${minsRemain} minutes.`
+    );
+  }
 }
 
 Sound.whenLoaded = async () => {
@@ -92,20 +173,23 @@ Sound.whenLoaded = async () => {
 
 function initializeIdb() {
   if (!indexedDB) {
-    alert("Your browser doesn't support a stable version of IndexedDB.");
+    alert(
+      "Your browser doesn't support a stable version of IndexedDB. Please use another browser."
+    );
     return;
   }
 
-  const request = indexedDB.open("MyTestDatabase");
-  request.onerror = (event) => {
-    alert("IndexedDB: 'onerror' event triggered.", event.target.error);
+  const openRequest = indexedDB.open("BleicDatabase");
+  openRequest.onerror = () => {
+    console.error("Error", openRequest.error);
   };
-  request.onsuccess = (event) => {
-    idb = event.target.result;
-    fetchUserData(document.getElementById("username").innerText);
+  openRequest.onsuccess = () => {
+    idb = openRequest.result;
+    username = document.getElementById("username").innerText;
+    fetchUserData(username);
   };
-  request.onupgradeneeded = (event) => {
-    const idb = event.target.result;
+  openRequest.onupgradeneeded = () => {
+    const idb = openRequest.result;
     const objStore = idb.createObjectStore("sessions", { autoIncrement: true });
     // objStore.createIndex("pt_id", "pt_id");
     // objStore.transaction.oncomplete = (event) => {};
@@ -117,6 +201,7 @@ function createIdbSession(pt_id, prog_id) {
     .transaction("sessions", "readwrite")
     .objectStore("sessions");
   const sessionData = {
+    username: username,
     pt_id: pt_id,
     prog_id: prog_id,
     start_ts: Date.now() / 1000,
@@ -126,7 +211,6 @@ function createIdbSession(pt_id, prog_id) {
     fst_sets: 0,
     dtp_sets: 0,
     fsd_sets: 0,
-    synced: false,
   };
   const request = sessionObjStore.add(sessionData);
   request.onsuccess = (event) => {
@@ -181,12 +265,15 @@ function updateIdbSession(ses_id, keyToUpdate) {
 FAILED TO UPLOAD DATA.`;
             console.error("Error:", error);
           });
+        break;
       case "synced":
-        data.synced = true;
+        const deleteRequest = sessionObjStore.delete(ses_id);
+        // deleteRequest.onsuccess = (event) => {};
         endingInfo.text = `LEVEL COMPLETED!
 
 DATA UPLOADED SUCCESSFULLY!
 YOU MAY NOW CLOSE THE WINDOW.`;
+        return;
       default:
         break;
     }
@@ -1145,6 +1232,8 @@ function myoListenersSetup() {
   Myo.on("status", myoStatusListener);
   Myo.onError = myoConnectionListener;
   Myo.on("ready", myoConnectionListener);
+  // Myo.on("pose", myoPoseOnListener);
+  // Myo.on("pose_off", myoPoseOffListener);
   evtSource.addEventListener("pose", myoPoseOnListener);
   evtSource.addEventListener("pose_off", myoPoseOffListener);
 }
@@ -1175,6 +1264,7 @@ function myoConnectionListener(event) {
 
 function myoPoseOnListener(event) {
   let ex = event.data;
+  // let ex = event;
   // keyPressed = "MYO";
   if (
     !target.exercise ||
@@ -1264,6 +1354,7 @@ function updateFreePositions() {
 function myoPoseOffListener(event) {
   // keyPressed = undefined;
   let ex = event.data;
+  // let ex = event;
   myoSprite.isIdle = true;
 
   if (playerChar.textures[0].textureCacheIds[0].includes("east")) {
