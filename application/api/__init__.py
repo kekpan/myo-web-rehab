@@ -67,6 +67,12 @@ class ProgramAPI(MethodView):
                 if patient.start_date
                 else 0
             )
+            last_day_week = (
+                Program.query.filter_by(prog_group=patient.prog_group)
+                .order_by(Program.day_no.desc())
+                .first()
+                .day_week
+            )
             data = {
                 "pt_id": patient.id,
                 "prog_id": program.id,
@@ -74,6 +80,7 @@ class ProgramAPI(MethodView):
                 "curtLvl": program.day_no,
                 "totLevels": totLevels,
                 "dayWeek": program.day_week,
+                "lastDayWeek": last_day_week,
                 "startDate": start_date,
                 "setsToDo": {
                     "fingers_spread": program.fsd_sets,
@@ -106,7 +113,10 @@ class SessionAPI(MethodView):
     def post(self):
         req = request.json
         start_ts = datetime.fromtimestamp(request.json["start_ts"])
-        end_ts = datetime.fromtimestamp(request.json["end_ts"])
+        if req["success"]:
+            end_ts = datetime.fromtimestamp(request.json["end_ts"])
+        else:
+            end_ts = None
         session = Session(
             start_ts=start_ts,
             pt_id=req["pt_id"],
